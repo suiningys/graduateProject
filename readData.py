@@ -16,10 +16,11 @@ from sklearn import model_selection
 def readData():
     dataPath = './COCO2CH4.xlsx'
     d = pd.read_excel(dataPath)
-    CO = d['CO']
-    CH4 = d['CH4']
-    CO2 = d['CO2']
-    specData = d.iloc[:,5:]
+    lines = d.shape[0]
+    CO = d['CO'].as_matrix().reshape(lines,1)
+    CH4 = d['CH4'].as_matrix().reshape(lines,1)
+    CO2 = d['CO2'].as_matrix().reshape(lines,1)
+    specData = d.iloc[:,5:].as_matrix()
     return CO,CO2,CH4,specData
 
 def PLS(xTest, yTest, xTrain, yTrain, nComponents):
@@ -50,6 +51,26 @@ def useElasticNet(xTest, yTest, xTrain, yTrain):
     coef = enModel.coef_
     yPredict = enModel.predict(xTest)
     return yPredict,coef
+
+def UVECV(xTest, yTest, uveLv):
+    kf = model_selection.KFold(n_splits=5)
+    squareArray = []
+    for train, test in kf.split(xTest):
+        xTrainTemp = xTest[train,:]
+        yTrainTemp = yTest[train]
+        xTestTemp = xTest[test,:]
+        yTestTemp = yTest[test]
+        yPredictTemp, coef= PLS(xTestTemp,yTestTemp,xTrainTemp,yTrainTemp,uveLv)
+        residual = yPredictTemp - yTestTemp
+        square = np.dot(residual.T,residual)
+        squareArray.append(square)
+    RMSECV = np.sqrt(sum(squareArray)/xTest.shape[0])
+    return RMSECV
+
+def UVE(xTest, yTest):
+    trans, features = xTest.shape
+    uveLvMax = round(min(trans,features)/3)
+
 
 if __name__=="__main__":
     CO, CO2, CH4, specData = readData()
