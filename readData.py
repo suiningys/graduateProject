@@ -12,6 +12,7 @@ from pandas import Series, DataFrame
 from sklearn import linear_model
 from sklearn import cross_decomposition
 from sklearn import model_selection
+from sklearn import metrics as sm
 
 def readData():
     dataPath = './COCO2CH4.xlsx'
@@ -51,6 +52,12 @@ def useElasticNet(xTest, yTest, xTrain, yTrain):
     coef = enModel.coef_
     yPredict = enModel.predict(xTest)
     return yPredict,coef
+
+def calMetric(yPredict, yTest):
+    #residual = yPredict - yTest
+    #MSE = np.dot(residual.T,residual)/residual.shape[0]
+    MSE = sm.mean_squared_error(yTest,yPredict)
+    R2 = sm.r2_score(yTest,yPredict)
 
 def UVECV(xTest, yTest, uveLv):
     kf = model_selection.KFold(n_splits=5)

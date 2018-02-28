@@ -8,6 +8,8 @@ bug fuck off!!!
 
 import unittest
 
+import numpy as np
+
 from readData import readData
 from readData import UVECV
 
@@ -20,7 +22,9 @@ class testCV(unittest.TestCase):
 
     def test_CV(self):
         CO, CO2, CH4, specData = readData()
-        self.assertIsInstance(UVECV(specData,CO,20), float)
+        res = UVECV(specData,CO,50)
+        print(res)
+        self.assertIsInstance(res, np.ndarray)
 
 if __name__=="__main__":
     unittest.main()
