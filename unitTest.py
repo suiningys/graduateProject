@@ -22,7 +22,7 @@ class testCV(unittest.TestCase):
 
     def test_CV(self):
         CO, CO2, CH4, specData = readData()
-        res = UVECV(specData,CO,50)
+        res,coefs = UVECV(specData,CO,50)
         print(res)
         self.assertIsInstance(res, np.ndarray)
 
