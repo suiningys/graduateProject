@@ -62,7 +62,7 @@ def calMetric(yPredict, yTest):
 def UVECV(xTest, yTest, uveLv):
     kf = model_selection.KFold(n_splits=5)
     loo = model_selection.LeaveOneOut()
-    squareArray = []
+    squareArray = np.array([[]])
     coefs = np.array([[]])
     for train, test in loo.split(xTest):
         xTrainTemp = xTest[train,:]
@@ -77,15 +77,18 @@ def UVECV(xTest, yTest, uveLv):
             coefs = np.append(coefs,coefTemp,axis=0)
         residual = yPredictTemp - yTestTemp
         square = np.dot(residual.T,residual)
-        squareArray.append(square)
-    RMSECV = np.sqrt(sum(squareArray)/xTest.shape[0])
+        squareArray = np.append(squareArray,square)
+        #squareArray.append(square)
+    RMSECV = np.sqrt(np.sum(squareArray)/xTest.shape[0])
     return RMSECV,coefs
 
 def UVE(xTest, yTest):
     trans, features = xTest.shape
     uveLvMax = round(min(trans,features)/3)
-    rmsecvInit = UVECV(xTest,yTest,uveLvMax)
-
+    uveLvStd = uveLvMax
+    rmsecvInit, coefsInit = UVECV(xTest,yTest,uveLvMax)
+    rmsecvStd = rmsecvInit
+    uveLvSave = [uveLvMax]
     uveRand = np.random.random([trans,features])*1e-6
     uveMartix = np.append(xTest,uveRand,axis=1)#合并矩阵
 
@@ -93,7 +96,26 @@ def UVE(xTest, yTest):
     uveIterCount = 0#迭代计数
 
     while uveIterStart!=0:
-        pass
+        rmsecvTemp, coefsTemp = UVECV(uveMartix,yTest,uveLvSave[uveIterCount])
+        Ctemp = np.mean(coefsTemp,axis=0)/np.std(coefsTemp,axis=0)
+        maxRandC = np.max(np.abs(Ctemp[features:]))
+        newIndex = np.where(Ctemp>maxRandC)[0]
+        xTestSelected = xTest[:,newIndex]
+        nTrans, nFeatures = xTestSelected.shape
+        if nFeatures>=uveLvSave[uveIterCount]:
+            rmsecvTemp,coefsTemp = UVECV(xTestSelected,yTest,uveLvSave[uveIterCount])
+            if rmsecvTemp>=rmsecvStd:
+                uveIterStart=0
+            else:
+                rmsecvStd = rmsecvTemp
+                uveLvStd = uveLvSave[uveIterCount]
+                finalRes = xTestSelected
+                uveLvSave.append(nFeatures-1)
+                uveIterCount += 1
+        else:
+            uveIterCount+=1
+            uveLvSave.append(nFeatures)
+    return rmsecvStd, uveLvStd, finalRes
 
 if __name__=="__main__":
     CO, CO2, CH4, specData = readData()
