@@ -59,15 +59,48 @@ def calMetric(yPredict, yTest):
     MSE = sm.mean_squared_error(yTest,yPredict)
     R2 = sm.r2_score(yTest,yPredict)
 
+def PLSwithAllFeatures(xTest, yTest, xTrain, yTrain):
+    kf = model_selection.KFold(n_splits=5,random_state=10)
+    trans, features = xTrain.shape
+    lvMax = int(min(trans, features)/3)
+    lvBest = 0
+    rmsecvBest = np.inf
+    for lvTemp in range(1,lvMax+1):
+        squareArray = np.array([[]])
+        for train, test in kf.split(xTrain):
+            xTrainTemp = xTrain[train, :]
+            yTrainTemp = yTrain[train]
+            xTestTemp = xTrain[test, :]
+            yTestTemp = yTrain[test]
+            yPredictTemp, coefTemp = PLS(xTestTemp, yTestTemp, xTrainTemp, yTrainTemp, lvTemp)
+            residual = yPredictTemp - yTestTemp
+            square = np.dot(residual.T, residual)
+            squareArray = np.append(squareArray, square)
+            # squareArray.append(square)
+        RMSECV = np.sqrt(np.sum(squareArray) / xTrain.shape[0])
+        if RMSECV<rmsecvBest:
+            rmsecvBest = RMSECV
+            lvBest = lvTemp
+
+    plsModel = cross_decomposition.PLSRegression(n_components=lvBest)
+    plsModel.fit(xTrain, yTrain)
+    coef = plsModel.coef_
+    yPredict = plsModel.predict(xTest)
+    yTrainPredict = plsModel.predict(xTrain)
+    R2 = sm.r2_score(yTrain,yTrainPredict)
+    MSE = sm.mean_squared_error(yTest,yPredict)
+    R2P = sm.r2_score(yTest, yPredict)
+    return yPredict, R2, MSE, R2P
+
 def UVECV(xTest, yTest, uveLv):
-    kf = model_selection.KFold(n_splits=5)
+    # kf = model_selection.KFold(n_splits=5,random_state=10)
     loo = model_selection.LeaveOneOut()
     squareArray = np.array([[]])
     coefs = np.array([[]])
     for train, test in loo.split(xTest):
-        xTrainTemp = xTest[train,:]
+        xTrainTemp = xTest[train, :]
         yTrainTemp = yTest[train]
-        xTestTemp = xTest[test,:]
+        xTestTemp = xTest[test, :]
         yTestTemp = yTest[test]
         yPredictTemp, coefTemp = PLS(xTestTemp,yTestTemp,xTrainTemp,yTrainTemp,uveLv)
         coefTemp = coefTemp.T
