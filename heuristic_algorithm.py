@@ -15,6 +15,7 @@ from sklearn import model_selection
 from sklearn import metrics as sm
 
 from readData import readData
+from readData import plsRegressAnalysis
 
 class individual(object):
     def __init__(self,chromo = None,fitness = None,lv = None):
@@ -25,7 +26,7 @@ class individual(object):
 class GeneAlgorithm(object):
     def __init__(self,xTrain,yTrain,
                  idv = 10, crossProb = 0.6, mutationProb = 0.01,mutBits = 1,
-                 Chromo = None, maxIter = 100):
+                 Chromo = None, maxIter = 100, fitnessFunction = plsRegressAnalysis):
         trans, features = xTrain.shape
         self.xData = xTrain
         self.yData = yTrain
@@ -34,6 +35,7 @@ class GeneAlgorithm(object):
         self.mutationProb = mutationProb#变异概率
         self.chromeBits = features#基因位点
         self.mutBits = mutBits#每次变异的位数
+        self.fitnessFunction = fitnessFunction
         if Chromo is None:#可以接受外部传入的初始化基因
             self.Chromo = np.random.randint(0,2,size = [self.idv,self.chromeBits])#初始化基因
         else:
@@ -59,10 +61,10 @@ class GeneAlgorithm(object):
         self.maxIter = maxIter#最大迭代次数
 
     def mutation(self,Chromo):
-        mutProp = np.random.random()
-        if mutProp<self.mutationProb:
-            mutBitPos = np.random.randint(0,self.chromeBits)
-            Chromo[mutBitPos] ^= 1#取反
+        # mutProp = np.random.random()
+        # if mutProp<self.mutationProb:
+        mutBitPos = np.random.randint(0,self.chromeBits)
+        Chromo[mutBitPos] ^= 1#取反
 
     def crossOver(self,Chrome1,Chrome2):
         crossBitPos = np.random.randint(0,self.chromeBits)
@@ -70,3 +72,12 @@ class GeneAlgorithm(object):
         Chrome2Tail = Chrome2[crossBitPos:].copy()
         Chrome1[crossBitPos:] = Chrome2Tail
         Chrome2[crossBitPos:] = Chrome1Tail
+
+    def calPopulationFitness(self):
+
+        for idv in self.population:
+            selectedIndex = np.where(idv.chromo==1)
+            xSelected = self.xData[:,selectedIndex]
+
+            yPredictTemp, R2Temp, rmsecvTemp, R2PTemp, MSETemp \
+                = self.fitnessFunction()

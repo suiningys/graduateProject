@@ -59,7 +59,7 @@ def calMetric(yPredict, yTest):
     MSE = sm.mean_squared_error(yTest,yPredict)
     R2 = sm.r2_score(yTest,yPredict)
 
-def PLSwithAllFeatures(xTest, yTest, xTrain, yTrain):
+def plsRegressAnalysis(xTrain, yTrain, xTest = None, yTest = None):
     kf = model_selection.KFold(n_splits=5,random_state=10)
     trans, features = xTrain.shape
     lvMax = int(min(trans, features)/3)
@@ -81,16 +81,18 @@ def PLSwithAllFeatures(xTest, yTest, xTrain, yTrain):
         if RMSECV<rmsecvBest:
             rmsecvBest = RMSECV
             lvBest = lvTemp
-
-    plsModel = cross_decomposition.PLSRegression(n_components=lvBest)
-    plsModel.fit(xTrain, yTrain)
-    coef = plsModel.coef_
-    yPredict = plsModel.predict(xTest)
-    yTrainPredict = plsModel.predict(xTrain)
-    R2 = sm.r2_score(yTrain,yTrainPredict)
-    MSE = sm.mean_squared_error(yTest,yPredict)
-    R2P = sm.r2_score(yTest, yPredict)
-    return yPredict, R2, MSE, R2P
+    if xTest is None:
+        return rmsecvBest
+    else:
+        plsModel = cross_decomposition.PLSRegression(n_components=lvBest)
+        plsModel.fit(xTrain, yTrain)
+        coef = plsModel.coef_
+        yPredict = plsModel.predict(xTest)
+        yTrainPredict = plsModel.predict(xTrain)
+        R2 = sm.r2_score(yTrain,yTrainPredict)
+        MSE = sm.mean_squared_error(yTest,yPredict)
+        R2P = sm.r2_score(yTest, yPredict)
+        return yPredict, R2, rmsecvBest, R2P,MSE, lvBest
 
 def UVECV(xTest, yTest, uveLv):
     # kf = model_selection.KFold(n_splits=5,random_state=10)
