@@ -94,6 +94,8 @@ def plsRegressAnalysis(xTrain, yTrain, xTest = None, yTest = None):
         R2P = sm.r2_score(yTest, yPredict)
         return yPredict, R2, rmsecvBest, R2P,MSE, lvBest
 
+
+
 def UVECV(xTest, yTest, uveLv):
     # kf = model_selection.KFold(n_splits=5,random_state=10)
     loo = model_selection.LeaveOneOut()

@@ -14,7 +14,7 @@ from sklearn.model_selection import train_test_split
 from readData import readData
 from readData import UVECV
 from readData import UVE
-from readData import PLSwithAllFeatures
+#from readData import PLSwithAllFeatures
 
 from heuristic_algorithm import individual
 from heuristic_algorithm import GeneAlgorithm
@@ -65,6 +65,14 @@ class testGA(unittest.TestCase):
         print(np.sum(GACO.population[0].chromo))
         print(np.sum(GACO.population[1].chromo))
         #GACO.crossOver(np.ones([1,GACO.chromeBits]), np.zeros([1,GACO.chromeBits]))
+
+    def testCalFitness(self):
+        CO, CO2, CH4, specData = readData()
+        xTrain, xTest, yTrain, yTest = \
+            train_test_split(specData, CO, test_size=0.25, random_state=42)
+        GACO = GeneAlgorithm(xTrain, yTrain)
+        GACO.calPopulationFitness()
+
 
 if __name__=="__main__":
     unittest.main()

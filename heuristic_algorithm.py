@@ -74,10 +74,13 @@ class GeneAlgorithm(object):
         Chrome2[crossBitPos:] = Chrome1Tail
 
     def calPopulationFitness(self):
-
+        fitnessSave = []
         for idv in self.population:
-            selectedIndex = np.where(idv.chromo==1)
+            #np.where()返回的值是一个元组，不是np.ndarray
+            selectedIndex = np.where(idv.chromo==1)[0]
             xSelected = self.xData[:,selectedIndex]
-
-            yPredictTemp, R2Temp, rmsecvTemp, R2PTemp, MSETemp \
-                = self.fitnessFunction()
+            #程序设定不输入测试集时只输出rmsecv作为fitness
+            rmsecvTemp = self.fitnessFunction(xSelected, self.yData)
+            idv.fitness = rmsecvTemp
+            fitnessSave.append(rmsecvTemp)
+        return fitnessSave
