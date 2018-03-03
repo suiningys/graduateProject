@@ -14,7 +14,7 @@ from sklearn.model_selection import train_test_split
 from readData import readData
 from readData import UVECV
 from readData import UVE
-#from readData import PLSwithAllFeatures
+from readData import plsRegressAnalysis
 
 from heuristic_algorithm import individual
 from heuristic_algorithm import GeneAlgorithm
@@ -46,7 +46,7 @@ class testCV(unittest.TestCase):
         CO, CO2, CH4, specData = readData()
         xTrain, xTest, yTrain, yTest = \
             train_test_split(specData, CO, test_size=0.25, random_state=42)
-        yPredict, R2, MSE, R2P = PLSwithAllFeatures(xTest, yTest, xTrain, yTrain)
+        yPredict, R2, MSE, R2P = plsRegressAnalysis(xTest, yTest, xTrain, yTrain)
         print("R2P is", R2P)
         self.assertIsInstance(yPredict, np.ndarray)
 
