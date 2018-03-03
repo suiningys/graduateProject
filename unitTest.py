@@ -72,6 +72,9 @@ class testGA(unittest.TestCase):
             train_test_split(specData, CO, test_size=0.25, random_state=42)
         GACO = GeneAlgorithm(xTrain, yTrain)
         GACO.calPopulationFitness()
+        for ind in GACO.population:
+            print(ind.fitness)
+
 
 
 if __name__=="__main__":
