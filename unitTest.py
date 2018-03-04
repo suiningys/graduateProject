@@ -75,7 +75,15 @@ class testGA(unittest.TestCase):
         for ind in GACO.population:
             print(ind.fitness)
 
-
+    def testSelection(self):
+        CO, CO2, CH4, specData = readData()
+        xTrain, xTest, yTrain, yTest = \
+            train_test_split(specData, CO, test_size=0.25, random_state=42)
+        GACO = GeneAlgorithm(xTrain, yTrain)
+        fitnessAll = GACO.calPopulationFitness()
+        # xTrain = np.array([[1,2,3],[4,5,6]])
+        # yTrain = np.array([[1],[2]])
+        GACO.selection(fitnessAll)
 
 if __name__=="__main__":
     unittest.main()

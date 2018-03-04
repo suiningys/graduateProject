@@ -7,6 +7,7 @@ bug fuck off!!!
 """
 import numpy as np
 import pandas as pd
+from copy import copy
 from pandas import Series, DataFrame
 
 from sklearn import linear_model
@@ -84,3 +85,20 @@ class GeneAlgorithm(object):
             idv.fitness = rmsecvTemp
             fitnessSave.append(rmsecvTemp)
         return fitnessSave
+
+    def selection(self,fitnessAll):
+        # fitnessAll = self.calPopulationFitness()
+        totalFitness = sum(fitnessAll)
+        newFitValue = []
+        for ii in range(len(fitnessAll)):
+            newFitValue.append(fitnessAll[ii]/totalFitness)
+        cumFitValue = [newFitValue[0]]
+        for ii in range(1,len(fitnessAll)):
+            cumFitValue.append(newFitValue[ii]+cumFitValue[ii-1])
+        print(len(cumFitValue),cumFitValue[-1])
+        for ii in range(len(self.population)):
+            randomNum = np.random.random()
+            selectionIdvTemp = 0
+            while(randomNum>cumFitValue[selectionIdvTemp]):
+                selectionIdvTemp +=1
+            self.population[ii] = copy(self.population[selectionIdvTemp])
