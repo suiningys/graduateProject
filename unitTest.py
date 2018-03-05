@@ -19,6 +19,8 @@ from readData import plsRegressAnalysis
 from heuristic_algorithm import individual
 from heuristic_algorithm import GeneAlgorithm
 
+from FPTreeAlgorithm import *
+
 class testCV(unittest.TestCase):
     def test_init(self):
         pass
@@ -92,6 +94,23 @@ class testGA(unittest.TestCase):
         GACO = GeneAlgorithm(xTrain, yTrain)
         globalIndival, currentFitnessTrace, globalFitnessTrace = GACO.GAAlgorithm()
         print(globalFitnessTrace)
+
+class testFPtree(unittest.TestCase):
+
+    def testFP(self):
+        testTrans = [['a','b'],
+                     ['b','c','d'],
+                     ['a','c','d','e'],
+                     ['a','d','e'],
+                     ['a','b','c'],
+                     ['a','b','c','d'],
+                     ['a'],
+                     ['a','b','c'],
+                     ['a','b','d'],
+                     ['b','c','e']]
+        transactions,transferDict = trans2Array(testTrans)
+        testTree, headerTable = createTree(transactions,minSup=0.6)
+        a = 10
 
 if __name__=="__main__":
     unittest.main()
