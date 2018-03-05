@@ -91,6 +91,7 @@ class testGA(unittest.TestCase):
             train_test_split(specData, CO, test_size=0.25, random_state=42)
         GACO = GeneAlgorithm(xTrain, yTrain)
         globalIndival, currentFitnessTrace, globalFitnessTrace = GACO.GAAlgorithm()
+        print(globalFitnessTrace)
 
 if __name__=="__main__":
     unittest.main()

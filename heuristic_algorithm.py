@@ -34,7 +34,7 @@ class individual(object):
 
 class GeneAlgorithm(object):
     def __init__(self,xTrain,yTrain,
-                 idv = 10, crossProb = 0.6, mutationProb = 0.01,mutBits = 1,
+                 idv = 10, crossProb = 0.6, mutationProb = 0.1,mutBits = 1,
                  Chromo = None, maxIter = 100, fitnessFunction = plsRegressAnalysis):
         trans, features = xTrain.shape
         self.xData = xTrain
@@ -72,6 +72,8 @@ class GeneAlgorithm(object):
 
         self.maxIter = maxIter#最大迭代次数
 
+        self.fitnessDict = {}
+
     def mutation(self):
         mutProp = np.random.random([1,self.idv])
         mutIdvIndex = np.where(mutProp<self.mutationProb)
@@ -103,9 +105,14 @@ class GeneAlgorithm(object):
         for idv in self.population:
             #np.where()返回的值是一个元组,第一项为行坐标，第二项为列坐标，不是np.ndarray
             selectedIndex = np.where(idv.chromo==1)[0]
-            xSelected = self.xData[:,selectedIndex]
-            #程序设定不输入测试集时只输出rmsecv作为fitness
-            rmsecvTemp, lvTemp = self.fitnessFunction(xSelected, self.yData)
+            selectedStr = ''.join(str(ii) for ii in idv.chromo)
+            if selectedStr in self.fitnessDict.keys():
+                rmsecvTemp, lvTemp = self.fitnessDict[selectedStr]
+            else:
+                xSelected = self.xData[:,selectedIndex]
+                #程序设定不输入测试集时只输出rmsecv作为fitness
+                rmsecvTemp, lvTemp = self.fitnessFunction(xSelected, self.yData)
+                self.fitnessDict[selectedStr] = (rmsecvTemp, lvTemp)
             idv.fitness = rmsecvTemp
             idv.lv = lvTemp
             fitnessSave.append(rmsecvTemp)
@@ -148,8 +155,10 @@ class GeneAlgorithm(object):
             globalFitnessTrace.append(self.globalBestFitness)
             #遗传算法优化
             sumFit = sum(fitnessAll)
+            biggestFit = max(fitnessAll)
             #修改适用度，因为GA原始算法的选择是选择适用度大的个体，而本程序目标寻最小
-            fitMod = [(sumFit - ii)/((self.idv -1)*sumFit) for ii in fitnessAll]
+            # fitMod = [(sumFit - ii)/((self.idv -1)*sumFit) for ii in fitnessAll]
+            fitMod = [biggestFit - ii + 1 for ii in fitnessAll]
             self.selection(fitMod)
             self.crossOver()
             self.mutation()
