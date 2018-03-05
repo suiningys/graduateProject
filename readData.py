@@ -82,7 +82,7 @@ def plsRegressAnalysis(xTrain, yTrain, xTest = None, yTest = None):
             rmsecvBest = RMSECV
             lvBest = lvTemp
     if xTest is None:
-        return rmsecvBest
+        return rmsecvBest, lvBest
     else:
         plsModel = cross_decomposition.PLSRegression(n_components=lvBest)
         plsModel.fit(xTrain, yTrain)

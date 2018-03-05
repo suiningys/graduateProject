@@ -61,7 +61,7 @@ class testGA(unittest.TestCase):
         # ind2 = individual(chrome=np.random.randint(0, 1, size=[1, 10]))
         GACO.population[0].chromo = np.ones(GACO.chromeBits)
         GACO.population[1].chromo = np.zeros(GACO.chromeBits)
-        GACO.crossOver(GACO.population[0].chromo,GACO.population[1].chromo)
+        GACO.crossOverChrome(GACO.population[0].chromo,GACO.population[1].chromo)
         print(np.sum(GACO.population[0].chromo))
         print(np.sum(GACO.population[1].chromo))
         #GACO.crossOver(np.ones([1,GACO.chromeBits]), np.zeros([1,GACO.chromeBits]))
@@ -84,6 +84,13 @@ class testGA(unittest.TestCase):
         # xTrain = np.array([[1,2,3],[4,5,6]])
         # yTrain = np.array([[1],[2]])
         GACO.selection(fitnessAll)
+
+    def testGA(self):
+        CO, CO2, CH4, specData = readData()
+        xTrain, xTest, yTrain, yTest = \
+            train_test_split(specData, CO, test_size=0.25, random_state=42)
+        GACO = GeneAlgorithm(xTrain, yTrain)
+        globalIndival, currentFitnessTrace, globalFitnessTrace = GACO.GAAlgorithm()
 
 if __name__=="__main__":
     unittest.main()
