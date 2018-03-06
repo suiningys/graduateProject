@@ -109,8 +109,34 @@ class testFPtree(unittest.TestCase):
                      ['a','b','d'],
                      ['b','c','e']]
         transactions,transferDict = trans2Array(testTrans)
-        testTree, headerTable = createTree(transactions,minSup=0.6)
-        a = 10
+        testTree, headerTable = createTree(transactions,minSup=0.0)
+        structArray = []
+        ergodicTree(testTree,structArray,0)
+        print(structArray)
+
+    def testPlot(self):
+        parentNode = treeNode('parent', plotPos=[0, 0])
+        childtNode = treeNode('child', plotPos=[1, 1])
+        axes = createPlot()
+        plotBranch(axes,parentNode,childtNode)
+
+    def testDraw(self):
+        testTrans = [['a', 'b'],
+                     ['b', 'c', 'd'],
+                     ['a', 'c', 'd', 'e'],
+                     ['a', 'd', 'e'],
+                     ['a', 'b', 'c'],
+                     ['a', 'b', 'c', 'd'],
+                     ['a'],
+                     ['a', 'b', 'c'],
+                     ['a', 'b', 'd'],
+                     ['b', 'c', 'e']]
+        transactions, transferDict = trans2Array(testTrans)
+        testTree, headerTable = createTree(transactions, minSup=0.0)
+        structArray = []
+        axes, fig = createPlot()
+        drawTreeSimple(axes, testTree, structArray, 0)
+        plt.show()
 
 if __name__=="__main__":
     unittest.main()

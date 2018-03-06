@@ -6,15 +6,18 @@ __mtime__ = "2018/3/5"
 bug fuck off!!!
 """
 import numpy as np
+import matplotlib.pyplot as plt
 
 class treeNode(object):
-    def __init__(self, name = None, numOccur = 1, parentNode = None):
+    def __init__(self, name = None, numOccur = 1,
+                 parentNode = None, level = None, plotPos = []):
         self.name = name
         self.count = numOccur
         self.nodeLink = None
         self.parent = parentNode
         self.children = {}
-
+        self.level = level
+        self.plotPos = plotPos #画在图上的位置
     def inc(self,numOccur = 1):
         self.count += numOccur
 
@@ -56,7 +59,7 @@ def createTree(mat, minSup=0.8):
     if len(frequentItemSet)==0: return None, None
     for k in headerTable:
         headerTable[k] = [headerTable[k], None]
-    rootNode = treeNode('root node', 1, None)
+    rootNode = treeNode('root node', 1, None,0)
     for tranSet in transactions:
         localDict = {}
         for item in tranSet:
@@ -73,7 +76,7 @@ def updateTree(items, inTree, headerTable):
     if items[0] in inTree.children:
         inTree.children[items[0]].inc(1)
     else:
-        inTree.children[items[0]] = treeNode(items[0],1,inTree)
+        inTree.children[items[0]] = treeNode(items[0],1,inTree,inTree.level+1)
         if headerTable[items[0]][1] is None:
             headerTable[items[0]][1] = inTree.children[items[0]]
         else:
@@ -86,3 +89,63 @@ def updateHeader(nodeToTest, targetNode):
     while(not nodeToTest.nodeLink is None):
         nodeToTest = nodeToTest.nodeLink
     nodeToTest.nodeLink = targetNode
+
+def ergodicTree(rootNode, array = [], level = 0):
+    #level is the deep of rootNode
+    if level==0: array.append([]), array[0].append(rootNode)
+    if len(rootNode.children)==0: return
+    for child in rootNode.children.values():
+        if len(array)==level+1: array.append([])
+        array[level+1].append(child)
+        ergodicTree(child,array,level=level+1)
+
+nodePlt = dict(boxstyle="round64", fc="0.8")
+arrowArgs = dict(arrowstyle="<-")
+
+def createPlot():
+    fig = plt.figure(1,facecolor='white')
+    fig.clf()
+    axes = fig.add_subplot(111)
+    axes.hold(True)
+    axes.axis('off')
+    return axes, fig
+
+def plotBranch(axes, ParentNode,ChildNode):
+    xTick = [ParentNode.plotPos[0],ChildNode.plotPos[0]]
+    yTick = [ParentNode.plotPos[1],ChildNode.plotPos[1]]
+    # axes.plot(ParentNode.plotPos,ChildNode.plotPos,'-bo')
+    axes.plot(xTick,yTick,'-bo')
+    axes.annotate(r'%s:%d' %(ParentNode.name,ParentNode.count),xy=ParentNode.plotPos)
+    axes.annotate(r'%s:%d' %(ChildNode.name,ChildNode.count), xy=ChildNode.plotPos)
+
+def drawTreeSimple(axes, rootNode, structArray = [], level = 0):
+    array = structArray
+    if level==0:
+        array.append([])
+        array[0].append(rootNode)
+        rootNode.plotPos = [0,0]
+    if len(rootNode.children)==0: return
+    for child in rootNode.children.values():
+        if len(array)==level+1:
+            array.append([])
+        array[level+1].append(child)
+        child.plotPos = [len(array[level+1])-1,-level-1]
+        plotBranch(axes,rootNode,child)
+        drawTreeSimple(axes,child,array,level=level+1)
+
+def testAll():
+    testTrans = [['a', 'b'],
+                 ['b', 'c', 'd'],
+                 ['a', 'c', 'd', 'e'],
+                 ['a', 'd', 'e'],
+                 ['a', 'b', 'c'],
+                 ['a', 'b', 'c', 'd'],
+                 ['a'],
+                 ['a', 'b', 'c'],
+                 ['a', 'b', 'd'],
+                 ['b', 'c', 'e']]
+    transactions, transferDict = trans2Array(testTrans)
+    testTree, headerTable = createTree(transactions, minSup=0.0)
+    structArray = []
+    axes, fig = createPlot()
+    drawTreeSimple(axes,testTree,structArray,0)
