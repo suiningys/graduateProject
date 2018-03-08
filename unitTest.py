@@ -20,6 +20,8 @@ from heuristic_algorithm import individual
 from heuristic_algorithm import GeneAlgorithm
 
 from FPTreeAlgorithm import *
+from dataPreprocessing import *
+from RReliefF import *
 
 class testCV(unittest.TestCase):
     def test_init(self):
@@ -137,6 +139,26 @@ class testFPtree(unittest.TestCase):
         axes, fig = createPlot()
         drawTreeSimple(axes, testTree, structArray, 0)
         plt.show()
+
+class testPreprocess(unittest.TestCase):
+
+    def testScale(self):
+        data = createData()
+        processingData(data)
+
+    def testRReliefF(self):
+        # CO, CO2, CH4, specData = readData()
+        # xTrain, xTest, yTrain, yTest = \
+        #     train_test_split(specData, CO, test_size=0.25, random_state=42)
+        sampleNumbers = 300
+        features = 10
+        xTrain = np.random.random([sampleNumbers,features])
+        yTrain = (xTrain[:,0]*1 + 1 *xTrain[:,1]).reshape(sampleNumbers,1)
+        W = RReliefF(xTrain,yTrain)
+        axes, fig = createPlot(axis='on')
+        axes.plot(list(range(1,11)),W)
+        plt.show()
+        print(W)
 
 if __name__=="__main__":
     unittest.main()

@@ -102,12 +102,12 @@ def ergodicTree(rootNode, array = [], level = 0):
 nodePlt = dict(boxstyle="round64", fc="0.8")
 arrowArgs = dict(arrowstyle="<-")
 
-def createPlot():
+def createPlot(hold = True,axis = 'off'):
     fig = plt.figure(1,facecolor='white')
     fig.clf()
     axes = fig.add_subplot(111)
-    axes.hold(True)
-    axes.axis('off')
+    axes.hold(hold)
+    axes.axis(axis)
     return axes, fig
 
 def plotBranch(axes, ParentNode,ChildNode):
