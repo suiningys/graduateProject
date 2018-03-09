@@ -23,6 +23,8 @@ from FPTreeAlgorithm import *
 from dataPreprocessing import *
 from RReliefF import *
 
+from ACOalgorithm import acoAlgorithm
+
 class testCV(unittest.TestCase):
     def test_init(self):
         pass
@@ -159,6 +161,15 @@ class testPreprocess(unittest.TestCase):
         axes.plot(list(range(1,11)),W)
         plt.show()
         print(W)
+
+class acoAlgorithmTest(unittest.TestCase):
+    def testACO(self):
+        CO, CO2, CH4, specData = readData()
+        xTrain, xTest, yTrain, yTest = \
+            train_test_split(specData, CO, test_size=0.25, random_state=42)
+        ACOcase = acoAlgorithm(xTrain, yTrain)
+        ACOcase.ACOAlgorithm()
+
 
 if __name__=="__main__":
     unittest.main()

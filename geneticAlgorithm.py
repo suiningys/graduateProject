@@ -41,7 +41,7 @@ class GeneAlgorithm(object):
         if Chromo is None:#可以接受外部传入的初始化基因
             self.Chromo = np.random.randint(0,2,size = [self.idv,self.chromeBits])#初始化基因
         else:
-            self.Chromo = Chromo
+            self.Chromo = Chromo.copy()
         #全局最优变量
         self.globalBestFitness = np.inf
         self.globalBestChromo = np.random.random([1,self.chromeBits])

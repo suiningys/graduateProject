@@ -15,7 +15,7 @@ from sklearn import model_selection
 from sklearn import metrics as sm
 
 def readData():
-    dataPath = './COCO2CH4.xlsx'
+    dataPath = './data/COCO2CH4.xlsx'
     d = pd.read_excel(dataPath)
     lines = d.shape[0]
     CO = d['CO'].as_matrix().reshape(lines,1)
