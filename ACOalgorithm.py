@@ -84,6 +84,7 @@ class acoAlgorithm(object):
         currentFitnessTrace = []
         globalFitnessTrace = []
         for ii in range(self.maxIter):
+            print("ii is equal",ii)
             # 计算概率矩阵
             for u in range(self.features):
                 self.Prob[u] = self.Tau[0,u]/(self.Tau[0,u]+self.Tau[1,u])
@@ -100,3 +101,34 @@ class acoAlgorithm(object):
                         else:
                             self.population[idv].chromo[u] = 1
             fitnessAll = self.calPopulationFitness()
+            self.currentBestFitness = min(fitnessAll)
+            currentFitnessTrace.append(self.currentBestFitness)
+            currentIdvIndex = fitnessAll.index(self.currentBestFitness)
+            self.currentBestChromo = \
+                self.population[currentIdvIndex].chromo
+            if self.currentBestFitness < self.globalBestFitness:
+                self.globalBestFitness = self.currentBestFitness
+                self.globalBestChromo = self.currentBestChromo.copy()
+                self.globalBestLv = self.population[currentIdvIndex].lv
+                self.globalIndival.setParameter(chromo=self.globalBestChromo,
+                                                fitness=self.globalBestFitness,
+                                                lv=self.globalBestLv)
+            globalFitnessTrace.append(self.globalBestFitness)
+            #信息素更新
+            for feat in range(self.features):
+                if ii%self.p:
+                    if self.currentBestChromo[feat]==0:
+                        self.Tau[0,feat] = self.Tau[0,feat]*self.Rho\
+                                            +self.Q/self.currentBestFitness
+                    else:
+                        self.Tau[1,feat] = self.Tau[1,feat]*self.Rho\
+                                            +self.Q/self.currentBestFitness
+                else:
+                    if self.globalBestChromo[feat]==0:
+                        self.Tau[0,feat] = self.Tau[0,feat]*self.Rho\
+                                            +self.Q/self.globalBestFitness
+                    else:
+                        self.Tau[1,feat] = self.Tau[1,feat]*self.Rho\
+                                            +self.Q/self.globalBestFitness
+
+        return self.globalIndival, currentFitnessTrace, globalFitnessTrace

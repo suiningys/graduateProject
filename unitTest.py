@@ -168,8 +168,8 @@ class acoAlgorithmTest(unittest.TestCase):
         xTrain, xTest, yTrain, yTest = \
             train_test_split(specData, CO, test_size=0.25, random_state=42)
         ACOcase = acoAlgorithm(xTrain, yTrain)
-        ACOcase.ACOAlgorithm()
-
+        globalIndival, currentFitnessTrace, globalFitnessTrace = ACOcase.ACOAlgorithm()
+        print(globalFitnessTrace)
 
 if __name__=="__main__":
     unittest.main()
