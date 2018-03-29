@@ -21,6 +21,9 @@ class treeNode(object):
     def inc(self,numOccur = 1):
         self.count += numOccur
 
+#node name -> node true name
+A2T = {"root node":"root"}
+
 def trans2Array(trans):
     T2A = {}
     number = 0
@@ -28,6 +31,7 @@ def trans2Array(trans):
         for item in tran:
             if not item in T2A.keys():
                 T2A[item] = number
+                A2T[number] = item
                 number +=1
     itemTotal = max(T2A.values())
     arrayTemp = np.zeros([len(trans),itemTotal+1])
@@ -115,8 +119,8 @@ def plotBranch(axes, ParentNode,ChildNode):
     yTick = [ParentNode.plotPos[1],ChildNode.plotPos[1]]
     # axes.plot(ParentNode.plotPos,ChildNode.plotPos,'-bo')
     axes.plot(xTick,yTick,'-bo')
-    axes.annotate(r'%s:%d' %(ParentNode.name,ParentNode.count),xy=ParentNode.plotPos)
-    axes.annotate(r'%s:%d' %(ChildNode.name,ChildNode.count), xy=ChildNode.plotPos)
+    axes.annotate(r'%s:%d' %(A2T[ParentNode.name],ParentNode.count),xy=[x+0.1 for x in ParentNode.plotPos])
+    axes.annotate(r'%s:%d' %(A2T[ChildNode.name],ChildNode.count), xy=[x+0.1 for x in ChildNode.plotPos])
 
 def drawTreeSimple(axes, rootNode, structArray = [], level = 0):
     array = structArray
