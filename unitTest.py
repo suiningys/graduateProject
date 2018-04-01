@@ -25,6 +25,8 @@ from RReliefF import *
 
 from ACOalgorithm import acoAlgorithm
 
+from generateOrthogonalArrays import *
+
 class testCV(unittest.TestCase):
     def test_init(self):
         pass
@@ -170,6 +172,33 @@ class acoAlgorithmTest(unittest.TestCase):
         ACOcase = acoAlgorithm(xTrain, yTrain)
         globalIndival, currentFitnessTrace, globalFitnessTrace = ACOcase.ACOAlgorithm()
         print(globalFitnessTrace)
+
+class OrthTest(unittest.TestCase):
+
+    def testSetBase(self):
+        a = setBase(1,4)
+        self.assertIsInstance(a[0][0],np.int32)
+        self.assertIsInstance(a[-1][0], np.int32)
+
+    def testGenerateBase(self):
+        base = generateBase(3)
+        print(base)
+
+    def testGenerateOrder(self):
+        order = generateOrder(2)
+        print(order)
+
+    def testGenerateNewColumn(self):
+        base = generateBase(3)
+        order = generateOrder(3)
+        newColumn = xor(base[:,0],base[:,1])
+        print(newColumn)
+        newColumn = generateNewColumn([1],2,base)
+        print(newColumn)
+
+    def testGenerateOrth(self):
+        orthArray = generateOrthArray(1000)
+        print(orthArray)
 
 if __name__=="__main__":
     unittest.main()
