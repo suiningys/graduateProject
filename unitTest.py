@@ -144,6 +144,12 @@ class testFPtree(unittest.TestCase):
         drawTreeSimple(axes, testTree, structArray, 0)
         plt.show()
 
+    def testUseFP(self):
+        CO, CO2, CH4, specData = readData()
+        xTrain, xTest, yTrain, yTest = \
+            train_test_split(specData, CO, test_size=0.25, random_state=42)
+        useFPtree(xTrain,yTrain)
+
 class testPreprocess(unittest.TestCase):
 
     def testScale(self):

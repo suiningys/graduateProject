@@ -7,6 +7,9 @@ bug fuck off!!!
 """
 import numpy as np
 import matplotlib.pyplot as plt
+from generateOrthogonalArrays import generateOrthArray
+from readData import plsRegressAnalysis
+from operator import itemgetter
 
 class treeNode(object):
     def __init__(self, name = None, numOccur = 1,
@@ -50,7 +53,10 @@ def array2Trans(mat):
     return transcations
 
 def createTree(mat, minSup=0.8):
-    transactions = array2Trans(mat)
+    if isinstance(mat,np.ndarray):#如果输入的是个矩阵，先转换成事物
+        transactions = array2Trans(mat)
+    else:#如果输入的就是事物类型，直接赋值
+        transactions = mat
 
     headerTable = {}
     for tran in transactions:
@@ -136,6 +142,28 @@ def drawTreeSimple(axes, rootNode, structArray = [], level = 0):
         child.plotPos = [len(array[level+1])-1,-level-1]
         plotBranch(axes,rootNode,child)
         drawTreeSimple(axes,child,array,level=level+1)
+
+def useFPtree(xTrain, yTrain):
+    trans, features = xTrain.shape
+    orthArray = generateOrthArray(features)
+    orthArray = orthArray[:,0:features]
+    fitnessSave = np.array([])
+    lvSave = np.array([])
+    transSave = []
+    for ii in range(1,orthArray.shape[0]):
+        selectionPlan = orthArray[ii,:]
+        selectedIndex = np.where(selectionPlan == 1)[0]
+        xSelected = xTrain[:, selectedIndex]
+        # 程序设定不输入测试集时只输出rmsecv作为fitness
+        rmsecvTemp, lvTemp = plsRegressAnalysis(xSelected, yTrain)
+        transSave.append(selectedIndex)
+        np.append(fitnessSave, rmsecvTemp)
+        np.append(lvSave, lvTemp)
+    rmsecvMed = np.median(fitnessSave)
+    goodPlanIndex = np.where(fitnessSave<=rmsecvMed)[0]
+    goodTrans = [transSave[index] for index in goodPlanIndex]
+    testTree, headerTable = createTree(goodTrans, minSup=0.2)
+
 
 def testAll():
     testTrans = [['a', 'b'],
