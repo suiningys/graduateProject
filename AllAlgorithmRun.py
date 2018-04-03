@@ -8,25 +8,21 @@ bug fuck off!!!
 
 import numpy as np
 import pandas as pd
-import pickle
 from sklearn.model_selection import train_test_split
 
 from readData import readData
-from readData import UVECV
 from readData import UVE
 from readData import plsRegressAnalysis
 from readData import useLasso
 from readData import useElasticNet
 
-from heuristic_algorithm import individual
-from heuristic_algorithm import GeneAlgorithm
+
 
 from FPTreeAlgorithm import *
-from dataPreprocessing import *
 from RReliefF import *
-
+from heuristic_algorithm import GeneAlgorithm
 from ACOalgorithm import acoAlgorithm
-
+from SAalgorithm import SA
 from generateOrthogonalArrays import *
 
 '''
@@ -64,19 +60,63 @@ trans, features = xTrain.shape
 initRandomState = np.random.randint(0,2,size = [idv,features])#初始化基因
 
 #SA
+SACase = SA(xTrain,yTrain)
+globalIndivalSA, currentFitnessTraceSA, globalFitnessTraceSA = SACase.SAAlgorithm()
+print(globalFitnessTraceSA)
 
 #GA
 GACO = GeneAlgorithm(xTrain, yTrain,idv=idv,Chromo=initRandomState)
 globalIndivalGA, currentFitnessTraceGA, globalFitnessTraceGA = GACO.GAAlgorithm()
 print(globalFitnessTraceGA)
+
 #ACO
 ACOcase = acoAlgorithm(xTrain, yTrain)
 globalIndivalACO, currentFitnessTraceACO, globalFitnessTraceACO = ACOcase.ACOAlgorithm()
 print(globalFitnessTraceACO)
+
+'''
+Embedded
+'''
 #LASSO
 yPredictLasso, ceofLasso = useLasso(xTest, yTest, xTrain, yTrain)
+
 #EN
 yPredictEN,coefEN = useElasticNet(xTest, yTest, xTrain, yTrain)
+'''
+my algorithm
+'''
 #FP-Tree
 orthArray = generateOrthArray(features)
+orthArray = orthArray[:,0:features]
+fitnessSave = np.array([])
+lvSave = np.array([])
+transSave = []
+for ii in range(1,orthArray.shape[0]):
+    selectionPlan = orthArray[ii,:]
+    selectedIndex = np.where(selectionPlan == 1)[0]
+    xSelected = xTrain[:, selectedIndex]
+    # 程序设定不输入测试集时只输出rmsecv作为fitness
+    rmsecvTemp, lvTemp = plsRegressAnalysis(xSelected, yTrain)
+    transSave.append(selectedIndex)
+    np.append(fitnessSave, rmsecvTemp)
+    np.append(lvSave, lvTemp)
+#保存数据
+saveData(transSave=transSave,fitnessSave=fitnessSave,lvSave=lvSave)
+rmsecvMed = np.median(fitnessSave)
+goodPlanIndex = np.where(fitnessSave<=rmsecvMed)[0]
+goodTrans = [transSave[index] for index in goodPlanIndex]
+testTree, headerTable = createTree(goodTrans, minSup=0.2)
+branchs = []
+ergodicTreeBranch(testTree,branchs)
+bestBranch = []
+maxSumCount = 0
+for branch in branchs:
+    sumCount = 0
+    branchItem = []
+    for item in branch:
+        sumCount += item.count
+        branchItem.append(item.name)
+    if sumCount>maxSumCount:
+        maxSumCount = sumCount
+        bestBranch = branchItem
 

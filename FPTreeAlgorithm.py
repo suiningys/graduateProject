@@ -9,7 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from generateOrthogonalArrays import generateOrthArray
 from readData import plsRegressAnalysis
-from operator import itemgetter
+from readData import saveData, loadData
 
 class treeNode(object):
     def __init__(self, name = None, numOccur = 1,
@@ -143,6 +143,18 @@ def drawTreeSimple(axes, rootNode, structArray = [], level = 0):
         plotBranch(axes,rootNode,child)
         drawTreeSimple(axes,child,array,level=level+1)
 
+def ergodicTreeBranch(Node, branch = [], branchTemp = []):
+    if Node.name!='root node':
+        branchTemp.append(Node)
+    if(len(Node.children)==0):
+        branch.append(branchTemp)
+        return
+    else:
+        for child in Node.children.values():
+            branchTemp2 = branchTemp.copy()
+            ergodicTreeBranch(child,branch,branchTemp2)
+
+
 def useFPtree(xTrain, yTrain):
     trans, features = xTrain.shape
     orthArray = generateOrthArray(features)
@@ -159,10 +171,27 @@ def useFPtree(xTrain, yTrain):
         transSave.append(selectedIndex)
         np.append(fitnessSave, rmsecvTemp)
         np.append(lvSave, lvTemp)
+    #保存数据
+    saveData(transSave=transSave,fitnessSave=fitnessSave,lvSave=lvSave)
+
     rmsecvMed = np.median(fitnessSave)
     goodPlanIndex = np.where(fitnessSave<=rmsecvMed)[0]
     goodTrans = [transSave[index] for index in goodPlanIndex]
     testTree, headerTable = createTree(goodTrans, minSup=0.2)
+    branchs = []
+    ergodicTreeBranch(testTree,branchs)
+    bestBranch = []
+    maxSumCount = 0
+    for branch in branchs:
+        sumCount = 0
+        branchItem = []
+        for item in branch:
+            sumCount += item.count
+            branchItem.append(item.name)
+        if sumCount>maxSumCount:
+            maxSumCount = sumCount
+            bestBranch = branchItem
+    return bestBranch
 
 
 def testAll():

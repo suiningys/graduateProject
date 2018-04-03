@@ -146,6 +146,12 @@ class GeneAlgorithm(object):
                                                 fitness=self.globalBestFitness,
                                                 lv=self.globalBestLv)
             globalFitnessTrace.append(self.globalBestFitness)
+            #将全局最优赋给最差个体
+            currentWorestIndex = fitnessAll.index(max(fitnessAll))
+            self.population[currentWorestIndex].chromo = self.globalBestChromo.copy()
+            self.population[currentWorestIndex].fitness = self.globalBestFitness
+            self.population[currentWorestIndex].lv = self.globalBestLv
+            fitnessAll[currentWorestIndex] = self.globalBestFitness
             #遗传算法优化
             sumFit = sum(fitnessAll)
             biggestFit = max(fitnessAll)

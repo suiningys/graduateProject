@@ -26,6 +26,7 @@ from RReliefF import *
 from ACOalgorithm import acoAlgorithm
 
 from generateOrthogonalArrays import *
+from SAalgorithm import *
 
 class testCV(unittest.TestCase):
     def test_init(self):
@@ -119,6 +120,13 @@ class testFPtree(unittest.TestCase):
         structArray = []
         ergodicTree(testTree,structArray,0)
         print(structArray)
+        branch = []
+        ergodicTreeBranch(testTree,branch)
+        for bc in branch:
+            bcTemp = []
+            for item in bc:
+                bcTemp.append(item.name)
+            print(bcTemp)
 
     def testPlot(self):
         parentNode = treeNode('parent', plotPos=[0, 0])
@@ -177,6 +185,15 @@ class acoAlgorithmTest(unittest.TestCase):
             train_test_split(specData, CO, test_size=0.25, random_state=42)
         ACOcase = acoAlgorithm(xTrain, yTrain)
         globalIndival, currentFitnessTrace, globalFitnessTrace = ACOcase.ACOAlgorithm()
+        print(globalFitnessTrace)
+
+class saAlgorithm(unittest.TestCase):
+    def testSA(self):
+        CO, CO2, CH4, specData = readData()
+        xTrain, xTest, yTrain, yTest = \
+            train_test_split(specData, CO, test_size=0.25, random_state=42)
+        SACase = SA(xTrain,yTrain)
+        globalIndival, currentFitnessTrace, globalFitnessTrace = SACase.SAAlgorithm()
         print(globalFitnessTrace)
 
 class OrthTest(unittest.TestCase):

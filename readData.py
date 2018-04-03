@@ -24,6 +24,20 @@ def readData(dataPath='./data/COCO2CH4.xlsx'):
     specData = d.iloc[:,5:].as_matrix()
     return CO,CO2,CH4,specData
 
+def saveData(**kwargs):
+    params = {}
+    params.update(kwargs)
+    for key in params.keys():
+        savePath = './saveData/'+key
+        np.save(savePath,params[key])
+
+def loadData(**kwargs):
+    Dict = {}
+    for key in kwargs:
+        savePath = './saveData/' + key
+        Dict[key] = np.load(savePath)
+    return Dict
+
 def PLS(xTest, yTest, xTrain, yTrain, nComponents):
     plsModel = cross_decomposition.PLSRegression(n_components=nComponents)
     plsModel.fit(xTrain,yTrain)
