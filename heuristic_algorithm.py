@@ -17,6 +17,7 @@ from sklearn import metrics as sm
 
 from readData import readData
 from readData import plsRegressAnalysis
+from readData import PLS
 
 class individual(object):
     def __init__(self,chromo = None,fitness = None,lv = None):

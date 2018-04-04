@@ -43,29 +43,37 @@ def PLS(xTest, yTest, xTrain, yTrain, nComponents):
     plsModel.fit(xTrain,yTrain)
     coef = plsModel.coef_
     yPredict = plsModel.predict(xTest)
-    return yPredict, coef
+    return yPredict, plsModel
 
 def useRidgeRegression(xTest, yTest, xTrain, yTrain):
     ridgeModel = linear_model.Ridge(alpha=0.01, fit_intercept=True,max_iter=10000)
     ridgeModel.fit(xTrain,yTrain)
     ceof = ridgeModel.coef_
     yPredict = ridgeModel.predict(xTest)
-    return yPredict, ceof
+    return yPredict, ridgeModel
 
 def useLasso(xTest, yTest, xTrain, yTrain):
     lassoModel = linear_model.Lasso(alpha=1.0, fit_intercept=True, max_iter=10000)
     lassoModel.fit(xTrain,yTrain)
     ceof = lassoModel.coef_
     yPredict = lassoModel.predict(xTest)
-    return yPredict, ceof
+    return yPredict, lassoModel
 
-def useElasticNet(xTest, yTest, xTrain, yTrain):
-    enModel = linear_model.ElasticNet(l1_ratio=0.7)
-    enModel.set_params(alpha=0.1)
+def useElasticNet(xTest, yTest, xTrain, yTrain,alpha=1,l1_ratio=0.5):
+    enModel = linear_model.ElasticNet(l1_ratio=l1_ratio)
+    enModel.set_params(alpha=alpha)
     enModel.fit(xTrain,yTrain)
     coef = enModel.coef_
     yPredict = enModel.predict(xTest)
-    return yPredict,coef
+    return yPredict,enModel
+
+def useElasticNetCV(xTest, yTest, xTrain, yTrain):
+    enModel = linear_model.ElasticNetCV(cv=10,random_state=0)
+    # enModel.set_params(alpha=0.1)
+    enModel.fit(xTrain,yTrain)
+    coef = enModel.coef_
+    yPredict = enModel.predict(xTest)
+    return yPredict,enModel
 
 def calMetric(yPredict, yTest):
     #residual = yPredict - yTest
@@ -161,12 +169,13 @@ def UVE(xTest, yTest):
                 rmsecvStd = rmsecvTemp
                 uveLvStd = uveLvSave[uveIterCount]
                 finalRes = xTestSelected
+                finalIndex = newIndex
                 uveLvSave.append(nFeatures-1)
                 uveIterCount += 1
         else:
             uveIterCount+=1
             uveLvSave.append(nFeatures)
-    return rmsecvStd, uveLvStd, finalRes
+    return rmsecvStd, uveLvStd, finalRes, finalIndex
 
 if __name__=="__main__":
     CO, CO2, CH4, specData = readData()
