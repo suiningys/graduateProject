@@ -74,6 +74,8 @@ fliter algorithm
 #RReliefF
 print("run RreliefF")
 w = RReliefF(xTrain,yTrain)
+th = np.percentile(w, 80)#计算分位数
+RFselectedIndex = np.where(w>=th)[0]
 #UVE
 print("run UVE")
 rmsecvStd, uveLvStd, finalRes ,uveSelectedIndex= UVE(xTrain,yTrain)
@@ -163,7 +165,7 @@ def predictUsingIdv(idv,xTest, yTest, xTrain, yTrain):
     yPredict, coef = PLS(xTest[:,selected], yTest, xTrain[:,selected], yTrain, idv.lv)
     return yPredict
 
-
+yPredictRF, R2RF, rmsecvBestRF, R2PRF,MSERF, lvBestRF = plsRegressAnalysis(xTrain[:,RFselectedIndex], yTrain, xTest[:,RFselectedIndex], yTest)
 yPredictUVE, ceofs = PLS(xTest[:,uveSelectedIndex], yTest, xTrain[:,uveSelectedIndex], yTrain, uveLvStd)
 yPredictSA = predictUsingIdv(globalIndivalSA,xTest, yTest, xTrain, yTrain)
 yPredictGA = predictUsingIdv(globalIndivalGA,xTest, yTest, xTrain, yTrain)
@@ -184,8 +186,19 @@ def drawRes(yPredictScale):
     plt.xlim(minLim * 1.3, yTest.max() * 1.1)
     plt.ylim(minLim * 1.3, yTest.max() * 1.1)
 
+
 fig = plt.figure()
 ax1 = fig.add_subplot(4,2,1)
+yPredictTemp = yPredictRF
+minLim = min(yTest.min(),yPredictTemp.min())
+maxLim = max(yTest.max(),yPredictTemp.max())
+plt.scatter(yTest,yPredictTemp,c='k',alpha=0.5)
+plt.plot([minLim*1.3,maxLim*1.1],[minLim*1.3,maxLim*1.1],c='k')
+plt.xlim(minLim*1.3, yTest.max()*1.1)
+plt.ylim(minLim*1.3, yTest.max()*1.1)
+
+fig = plt.figure()
+ax2 = fig.add_subplot(4,2,2)
 yPredictTemp = yPredictUVE
 minLim = min(yTest.min(),yPredictTemp.min())
 maxLim = max(yTest.max(),yPredictTemp.max())
@@ -194,7 +207,7 @@ plt.plot([minLim*1.3,maxLim*1.1],[minLim*1.3,maxLim*1.1],c='k')
 plt.xlim(minLim*1.3, yTest.max()*1.1)
 plt.ylim(minLim*1.3, yTest.max()*1.1)
 
-ax1 = fig.add_subplot(4,2,2)
+ax3 = fig.add_subplot(4,2,3)
 yPredictTemp = yPredictSA
 minLim = min(yTest.min(),yPredictTemp.min())
 maxLim = max(yTest.max(),yPredictTemp.max())
@@ -203,7 +216,7 @@ plt.plot([minLim*1.3,maxLim*1.1],[minLim*1.3,maxLim*1.1],c='k')
 plt.xlim(minLim*1.3, yTest.max()*1.1)
 plt.ylim(minLim*1.3, yTest.max()*1.1)
 
-ax1 = fig.add_subplot(4,2,3)
+ax4 = fig.add_subplot(4,2,4)
 yPredictTemp = yPredictGA
 minLim = min(yTest.min(),yPredictTemp.min())
 maxLim = max(yTest.max(),yPredictTemp.max())
@@ -212,7 +225,7 @@ plt.plot([minLim*1.3,maxLim*1.1],[minLim*1.3,maxLim*1.1],c='k')
 plt.xlim(minLim*1.3, yTest.max()*1.1)
 plt.ylim(minLim*1.3, yTest.max()*1.1)
 
-ax1 = fig.add_subplot(4,2,4)
+ax5 = fig.add_subplot(4,2,5)
 yPredictTemp = yPredictACO
 minLim = min(yTest.min(),yPredictTemp.min())
 maxLim = max(yTest.max(),yPredictTemp.max())
@@ -221,7 +234,7 @@ plt.plot([minLim*1.3,maxLim*1.1],[minLim*1.3,maxLim*1.1],c='k')
 plt.xlim(minLim*1.3, yTest.max()*1.1)
 plt.ylim(minLim*1.3, yTest.max()*1.1)
 
-ax1 = fig.add_subplot(4,2,5)
+ax6 = fig.add_subplot(4,2,6)
 yPredictTemp = yPredictLasso
 minLim = min(yTest.min(),yPredictTemp.min())
 maxLim = max(yTest.max(),yPredictTemp.max())
@@ -230,7 +243,7 @@ plt.plot([minLim*1.3,maxLim*1.1],[minLim*1.3,maxLim*1.1],c='k')
 plt.xlim(minLim*1.3, yTest.max()*1.1)
 plt.ylim(minLim*1.3, yTest.max()*1.1)
 
-ax1 = fig.add_subplot(4,2,6)
+ax7 = fig.add_subplot(4,2,7)
 yPredictTemp = yPredictEN
 minLim = min(yTest.min(),yPredictTemp.min())
 maxLim = max(yTest.max(),yPredictTemp.max())
@@ -239,7 +252,7 @@ plt.plot([minLim*1.3,maxLim*1.1],[minLim*1.3,maxLim*1.1],c='k')
 plt.xlim(minLim*1.3, yTest.max()*1.1)
 plt.ylim(minLim*1.3, yTest.max()*1.1)
 
-ax1 = fig.add_subplot(4,2,7)
+ax8 = fig.add_subplot(4,2,8)
 yPredictTemp = yPredictFPTree
 minLim = min(yTest.min(),yPredictTemp.min())
 maxLim = max(yTest.max(),yPredictTemp.max())

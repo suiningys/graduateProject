@@ -168,7 +168,7 @@ class testPreprocess(unittest.TestCase):
         # CO, CO2, CH4, specData = readData()
         # xTrain, xTest, yTrain, yTest = \
         #     train_test_split(specData, CO, test_size=0.25, random_state=42)
-        sampleNumbers = 300
+        sampleNumbers = 500
         features = 10
         xTrain = np.random.random([sampleNumbers,features])
         yTrain = (xTrain[:,0]*1 + 1 *xTrain[:,1]).reshape(sampleNumbers,1)

@@ -19,6 +19,12 @@ def distance(instancei,instancej):
 def diff(A,I1,I2):
     return np.abs(I1[A] - I2[A])
 
+def almostEqual(n1,n2,delta=1e-2):
+    if np.abs(n1-n2)<=delta:
+        return True
+    else:
+        return False
+
 def RReliefF(xData, yData, m=250, k=30, sigma = 0.01):
     dataScaler = preprocessing.MinMaxScaler(feature_range=(0,1))
     xDataScaled = dataScaler.fit_transform(xData)
