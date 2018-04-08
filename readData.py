@@ -75,6 +75,55 @@ def useElasticNetCV(xTest, yTest, xTrain, yTrain):
     yPredict = enModel.predict(xTest)
     return yPredict,enModel
 
+def ElasticNetCVOwn(xTest, yTest, xTrain, yTrain, plot=False):
+    kf = model_selection.KFold(n_splits=5, random_state=10)
+    trans, features = xTrain.shape
+    enModel = linear_model.ElasticNet()
+    rmsecvBest = np.inf
+    bestAlpha = 0
+    bestL1  = 1
+    l1Cand = np.arange(0,1,0.1)
+    alpheCand = np.arange(0,1,0.1)
+    rmsecvSave = np.zeros([l1Cand.shape[0],alpheCand.shape[0]])
+    for ii in range(l1Cand.shape[0]):
+        l1 = l1Cand[ii]
+        for jj in range(alpheCand.shape[0]):
+            alpha = alpheCand[jj]
+            squareArray = np.array([[]])
+            for train, test in kf.split(xTrain):
+                xTrainTemp = xTrain[train, :]
+                yTrainTemp = yTrain[train]
+                xTestTemp = xTrain[test, :]
+                yTestTemp = yTrain[test]
+                enModel.set_params(alpha=alpha,l1_ratio=l1)
+                enModel.fit(xTrainTemp,yTrainTemp)
+                yPredictTemp = enModel.predict(xTestTemp)
+                # yPredictTempTrue = scalerY.inverse_transform(yPredictTemp)
+                # yTestTempTrue = scalerY.inverse_transform(yTestTemp)
+                residual = yPredictTemp - yTestTemp
+                square = np.dot(residual.T, residual)
+                squareArray = np.append(squareArray, square)
+                # squareArray.append(square)
+            RMSECV = np.sqrt(np.sum(squareArray) / xTrain.shape[0])
+            rmsecvSave[ii][jj] = RMSECV
+            if RMSECV < rmsecvBest:
+                rmsecvBest = RMSECV
+                bestAlpha = alpha
+                bestL1 = l1
+    if(plot):
+        import matplotlib.pyplot as plt
+        from mpl_toolkits.mplot3d import Axes3D
+        fig = plt.figure()
+        ax = Axes3D(fig)
+        X,Y = np.meshgrid(l1Cand, alpheCand)
+        ax.plot_surface(X,Y,rmsecvSave)
+        ax.set_xlabel(r'L1')
+        ax.set_ylabel(r'$\alpha$')
+        ax.set_zlabel(r'RMSECV')
+        plt.show()
+
+    return bestAlpha, bestL1
+
 def calMetric(yPredict, yTest):
     #residual = yPredict - yTest
     #MSE = np.dot(residual.T,residual)/residual.shape[0]
@@ -128,8 +177,8 @@ def UVECV(xTest, yTest, uveLv):
         yTrainTemp = yTest[train]
         xTestTemp = xTest[test, :]
         yTestTemp = yTest[test]
-        yPredictTemp, coefTemp = PLS(xTestTemp,yTestTemp,xTrainTemp,yTrainTemp,uveLv)
-        coefTemp = coefTemp.T
+        yPredictTemp, plsModes = PLS(xTestTemp,yTestTemp,xTrainTemp,yTrainTemp,uveLv)
+        coefTemp = plsModes.coef_.T
         if coefs.shape[1]==0:
             coefs = coefTemp
         else:

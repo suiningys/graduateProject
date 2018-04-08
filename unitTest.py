@@ -15,6 +15,7 @@ from readData import readData
 from readData import UVECV
 from readData import UVE
 from readData import plsRegressAnalysis
+from readData import ElasticNetCVOwn
 
 from heuristic_algorithm import individual
 from heuristic_algorithm import GeneAlgorithm
@@ -146,7 +147,7 @@ class testFPtree(unittest.TestCase):
                      ['a', 'b', 'd'],
                      ['b', 'c', 'e']]
         transactions, transferDict = trans2Array(testTrans)
-        testTree, headerTable = createTree(transactions, minSup=0.0)
+        testTree, headerTable = createTree(transactions, minSup=0.7)
         structArray = []
         axes, fig = createPlot()
         drawTreeSimple(axes, testTree, structArray, 0)
@@ -222,6 +223,13 @@ class OrthTest(unittest.TestCase):
     def testGenerateOrth(self):
         orthArray = generateOrthArray(1000)
         print(orthArray)
+
+class ENTest(unittest.TestCase):
+    def testENCVO(self):
+        CO, CO2, CH4, specData = readData()
+        xTrain, xTest, yTrain, yTest = \
+            train_test_split(specData, CO, test_size=0.25, random_state=42)
+        bestAlpha, bestL1 = ElasticNetCVOwn(xTest, yTest, xTrain, yTrain, plot=True)
 
 if __name__=="__main__":
     unittest.main()
