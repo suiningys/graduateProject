@@ -200,6 +200,12 @@ def UVE(xTest, yTest):
     uveRand = np.random.random([trans,features])*1e-6
     uveMartix = np.append(xTest,uveRand,axis=1)#合并矩阵
 
+    rmsecvTemp, coefsTemp = UVECV(uveMartix, yTest, uveLvSave[0])
+    Ctemp = np.mean(coefsTemp, axis=0) / np.std(coefsTemp, axis=0)
+    maxRandC = np.max(np.abs(Ctemp[features:]))
+    newIndex = np.where(Ctemp > maxRandC)[0]
+    finalIndex = newIndex
+
     uveIterStart = 1#停止标志
     uveIterCount = 0#迭代计数
 
@@ -217,13 +223,13 @@ def UVE(xTest, yTest):
             else:
                 rmsecvStd = rmsecvTemp
                 uveLvStd = uveLvSave[uveIterCount]
-                finalRes = xTestSelected
                 finalIndex = newIndex
                 uveLvSave.append(nFeatures-1)
                 uveIterCount += 1
         else:
             uveIterCount+=1
             uveLvSave.append(nFeatures)
+    finalRes = xTest[:,finalIndex]
     return rmsecvStd, uveLvStd, finalRes, finalIndex
 
 if __name__=="__main__":

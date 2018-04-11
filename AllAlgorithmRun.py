@@ -52,7 +52,7 @@ If RandomState instance, random_state is the random number generator; If None,
 the random number generator is the RandomState instance used by np.random.
 '''
 xTrainOrigin, xTestOrigin, yTrainOrigin, yTestOrigin = \
-            train_test_split(specData, CO, test_size=0.2, random_state=42)
+            train_test_split(specData, CH4, test_size=0.2, random_state=42)
 
 '''
 数据预处理
@@ -112,6 +112,7 @@ Embedded
 print("run LASSO")
 yPredictLasso, LassoModel = useLasso(xTestOrigin, yTestOrigin, xTrainOrigin, yTrainOrigin)
 R2Lasso = sm.r2_score(yPredictLasso,yTestOrigin)
+CRLasso = np.where(LassoModel.coef_==0)[0].shape[0]/xTrain.shape[1]
 RMSEPlasso = np.sqrt(sm.mean_squared_error(yPredictLasso,yTestOrigin))
 #EN
 print("run EN")
@@ -157,17 +158,18 @@ def ElasticNetCVOwn(xTest, yTest, xTrain, yTrain, plot=False):
         ax = Axes3D(fig)
         X,Y = np.meshgrid(l1Cand, alpheCand)
         ax.plot_surface(X,Y,rmsecvSave)
-        ax.set_xlabel(r'L1')
+        ax.set_xlabel(r'$\rho$')
         ax.set_ylabel(r'$\alpha$')
         ax.set_zlabel(r'RMSECV')
         plt.show()
 
     return bestAlpha, bestL1
 
-# bestAlpha, bestL1 = ElasticNetCVOwn(xTest, yTest, xTrain, yTrain, plot=True)
-# yPredictEN0, ENModel0 = useElasticNet(xTest, yTest, xTrain, yTrain,l1_ratio=bestL1,alpha=bestAlpha)
+bestAlpha, bestL1 = ElasticNetCVOwn(xTest, yTest, xTrain, yTrain, plot=True)
+yPredictEN0, ENModel0 = useElasticNet(xTest, yTest, xTrain, yTrain,l1_ratio=bestL1,alpha=bestAlpha)
 yPredictEN,ENModel = useElasticNetCV(xTest, yTest, xTrain, yTrain)
 R2EN = sm.r2_score(yPredictEN,yTest)
+CREN = np.where(ENModel.coef_==0)[0].shape[0]/xTrain.shape[1]
 RMSEPEN = np.sqrt(sm.mean_squared_error(scalerY.inverse_transform(yPredictEN),yTestOrigin))
 
 '''
@@ -191,14 +193,7 @@ for ii in range(1,orthArray.shape[0]):
     fitnessSave = np.append(fitnessSave, rmsecvTemp)
     lvSave = np.append(lvSave, lvTemp)
 #保存数据
-saveData(transSave=transSave,fitnessSave=fitnessSave,lvSave=lvSave)
-
-#rmsecvMed = np.median(fitnessSave)
-rmsecvMed = np.percentile(fitnessSave,60)
-goodPlanIndex = np.where(fitnessSave<=rmsecvMed)[0]
-goodTrans = [transSave[index] for index in goodPlanIndex]
-print("generate FP-Tree")
-
+# saveData(transSave=transSave,fitnessSave=fitnessSave,lvSave=lvSave)
 def findBestMinsup():
     matrix = np.zeros([len(goodTrans),xTrain.shape[1]])
     for ii in range(len(goodTrans)):
@@ -209,6 +204,7 @@ def findBestMinsup():
     supMax = varSup.max()
     rmsecvBestFP = np.inf
     globalBestBranch = []
+    bestMinsup = 0
     rmsecvSave = []
     for minSup in np.arange(supMin,supMax,0.01):
         testTree, headerTable = createTree(goodTrans, minSup=minSup)
@@ -235,15 +231,56 @@ def findBestMinsup():
             rmsecvBestFP = rmsecvTemp
             bestMinsup = minSup
             globalBestBranch = bestBranch
-    
+
     return bestMinsup, globalBestBranch, rmsecvSave, np.arange(supMin,supMax,0.01)
-bestMinSup, bestBranch, rmsecvSave, xnum = findBestMinsup()
+
+bestRmsecv = np.inf
+bestPerc = 50
+rmsecvSave = []
+for perc in np.arange(50,90,5):
+    #rmsecvMed = np.median(fitnessSave)
+    rmsecvMed = np.percentile(fitnessSave,perc)#CO 60 C02 70
+    goodPlanIndex = np.where(fitnessSave<=rmsecvMed)[0]
+    goodTrans = [transSave[index] for index in goodPlanIndex]
+    print("generate FP-Tree")
+    bestMinSupTemp, bestBranchTemp, rmsecvSaveTemp, xnum = findBestMinsup()
+    rmsecvSave.append(rmsecvSaveTemp)
+    if min(rmsecvSaveTemp)<bestRmsecv:
+        bestPerc = perc
+        bestMinSup = bestMinSupTemp
+        bestBranch = bestBranchTemp
+
 #draw picture
+rmsecvSaveMod = np.zeros([np.arange(50,90,5).shape[0],xnum.shape[0]])
+for ii in range(xnum.shape[0]):
+    for jj in range(np.arange(50,90,5).shape[0]):
+        rmsecvSaveMod[jj][ii] = rmsecvSave[jj][ii]
+
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 fig = plt.figure()
-ax = fig.add_subplot(111)
-plt.plot(xnum, rmsecvSave,marker='.',c='k')
-ax.set_xlabel("minSup")
-ax.set_ylabel("RMSECV")
+ax = Axes3D(fig)
+X,Y = np.meshgrid(xnum, np.arange(50,90,5))
+ax.plot_surface(X,Y,rmsecvSaveMod)
+ax.set_xlabel(r'$minSup$')
+ax.set_ylabel(r'$perc$')
+ax.set_zlabel(r'RMSECV')
+plt.show()
+
+
+
+# fig = plt.figure()
+# ax = fig.add_subplot(111)
+# plt.plot(xnum, rmsecvSave,marker='.',c='k')
+# ax.set_xlabel("minSup")
+# ax.set_ylabel("RMSECV")
+
+# transactions, transferDict = trans2Array(goodTrans)
+# testTree, headerTable = createTree(transactions, minSup=bestMinSup)
+# structArray = []
+# axes, fig = createPlot()
+# drawTreeSimple(axes, testTree, structArray, 0)
+# plt.show()
 '''
 模型比较
 '''
@@ -259,8 +296,9 @@ yPredictUVE, ceofs = PLS(xTest[:,uveSelectedIndex], yTest, xTrain[:,uveSelectedI
 yPredictSA = predictUsingIdv(globalIndivalSA,xTest, yTest, xTrain, yTrain)
 yPredictGA = predictUsingIdv(globalIndivalGA,xTest, yTest, xTrain, yTrain)
 yPredictACO = predictUsingIdv(globalIndivalACO,xTest, yTest, xTrain, yTrain)
-yPredictFPTree, ceofs = PLS(xTest[:,bestBranch], yTest, xTrain[:,bestBranch], yTrain,lvTemp)
-
+# yPredictFPTree, ceofs = PLS(xTest[:,bestBranch], yTest, xTrain[:,bestBranch], yTrain,lvTemp)
+yPredictFPTree, R2FP, rmsecvBestFP, R2PFP,MSEFP, lvBestFP = plsRegressAnalysis(xTest[:,bestBranch], yTest, xTrain[:,bestBranch], yTrain)
+yPredictFPTree, plsModelFP = PLS(xTest[:,bestBranch], yTest, xTrain[:,bestBranch], yTrain,lvBestFP)
 '''
 计算模型评价参数
 '''
@@ -329,17 +367,42 @@ def modelMerit(SelectedIndex):
     return rmsecvBest, RMSET, RMSEP, R2T, R2P, R2CV, CR
 
 
+def wirteInFile(merit,fileName):
+    with open(fileName,'a+') as f:
+        for ii in merit:
+            f.write(str('%.3f' %ii))
+            f.write('\t')
+        f.write('\n')
+
+
+
 #计算
 MeritPLSAll = modelMerit(list(range(xTrain.shape[1])))
+
 MeritRF = modelMerit(RFselectedIndex)
+
 MeritUVE = modelMerit(uveSelectedIndex)
+
 SAselectedIndex = np.where(globalIndivalSA.chromo==1)[0]
 MeritSA = modelMerit(SAselectedIndex)
+
 GAselectedIndex = np.where(globalIndivalGA.chromo==1)[0]
 MeritGA = modelMerit(GAselectedIndex)
+
 ACOselectedIndex = np.where(globalIndivalACO.chromo==1)[0]
 MeritACO = modelMerit(ACOselectedIndex)
+
 MeritFP = modelMerit(bestBranch)
+#写入文件
+fileNameCO2 = r'.\saveData\CO2.txt'
+fileNameCH4 = r'.\saveData\CH4.txt'
+wirteInFile(MeritPLSAll,fileNameCO2)
+wirteInFile(MeritRF,fileNameCO2)
+wirteInFile(MeritUVE,fileNameCO2)
+wirteInFile(MeritSA,fileNameCO2)
+wirteInFile(MeritGA,fileNameCO2)
+wirteInFile(MeritACO,fileNameCO2)
+wirteInFile(MeritFP,fileNameCO2)
 
 
 #draw pic

@@ -49,7 +49,7 @@ class testCV(unittest.TestCase):
 
     def test_UVE(self):
         CO, CO2, CH4, specData = readData()
-        rmsecvStd, uveLvStd, finalRes = UVE(specData,CO)
+        rmsecvStd, uveLvStd, finalRes, uveSelectedIndex= UVE(specData,CO2)
         self.assertIsInstance(rmsecvStd,float)
 
     def test_PLSAll(self):
