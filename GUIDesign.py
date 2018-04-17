@@ -162,9 +162,13 @@ class ApplicationWindow(QMainWindow):
         self.main_widget = QWidget(self)
         mainFunctionLabel = QLabel('命令')
         importButton = QPushButton("导入数据")
+        importButton.clicked.connect(self.loadData)
         startButton = QPushButton('开始')
+        startButton.clicked.connect(self.startSelection)
         stopButton = QPushButton('停止')
+        stopButton.clicked.connect(self.stopSelection)
         exitButton = QPushButton('退出')
+        exitButton.clicked.connect(self.fileQuit)
         drawPic = DynamicDrawMachines(self.main_widget,width=5,height=4,dpi=100)
 
         self.hboxButton = QHBoxLayout()
@@ -180,11 +184,12 @@ class ApplicationWindow(QMainWindow):
         experNumTxt.setFixedWidth(100)
         algorithmsLable = QLabel('算法')
         availableAlgos = ['PLS','RReliefF','UVE-PLS','SA-PLS','GA-PLS','ACO-PLS','LASSO','Elastic Net','FP-Tree-PLS']
-        algorithmBlock = QComboBox()
-        algorithmBlock.insertItems(1,availableAlgos)
+        self.algorithmBlock = QComboBox()
+        self.algorithmBlock.insertItems(1,availableAlgos)
+        self.algorithmBlock.currentIndexChanged.connect(self.changeAlgorithm)
 
         self.gboxAlgo.addWidget(algorithmsLable, 0, 0)
-        self.gboxAlgo.addWidget(algorithmBlock, 0, 1)
+        self.gboxAlgo.addWidget(self.algorithmBlock, 0, 1)
         self.gboxAlgo.addWidget(experNumLabel,0,2)
         self.gboxAlgo.addWidget(experNumTxt,0,3)
 
@@ -245,6 +250,20 @@ sol yang 2018
 
     def closeEvent(self, ce):
         self.fileQuit()
+
+    def loadData(self):
+        self.statusBar().showMessage('正在加载数据', 2000)
+        self.statusBar().showMessage('加载数据完成', 2000)
+
+    def startSelection(self):
+        pass
+
+    def stopSelection(self):
+        pass
+
+    def changeAlgorithm(self):
+        self.selectedAlgorithm = self.algorithmBlock.currentText()
+        self.statusBar().showMessage('选择%s算法' %self.selectedAlgorithm, 1000)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

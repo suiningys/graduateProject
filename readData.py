@@ -205,6 +205,7 @@ def UVE(xTest, yTest):
     maxRandC = np.max(np.abs(Ctemp[features:]))
     newIndex = np.where(Ctemp > maxRandC)[0]
     finalIndex = newIndex
+    uveLvStd = finalIndex.shape[1]
 
     uveIterStart = 1#停止标志
     uveIterCount = 0#迭代计数

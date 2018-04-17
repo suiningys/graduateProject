@@ -52,7 +52,7 @@ If RandomState instance, random_state is the random number generator; If None,
 the random number generator is the RandomState instance used by np.random.
 '''
 xTrainOrigin, xTestOrigin, yTrainOrigin, yTestOrigin = \
-            train_test_split(specData, CH4, test_size=0.2, random_state=42)
+            train_test_split(specData2, NO, test_size=0.2, random_state=42)
 
 '''
 数据预处理
@@ -165,8 +165,8 @@ def ElasticNetCVOwn(xTest, yTest, xTrain, yTrain, plot=False):
 
     return bestAlpha, bestL1
 
-bestAlpha, bestL1 = ElasticNetCVOwn(xTest, yTest, xTrain, yTrain, plot=True)
-yPredictEN0, ENModel0 = useElasticNet(xTest, yTest, xTrain, yTrain,l1_ratio=bestL1,alpha=bestAlpha)
+# bestAlpha, bestL1 = ElasticNetCVOwn(xTest, yTest, xTrain, yTrain, plot=True)
+# yPredictEN0, ENModel0 = useElasticNet(xTest, yTest, xTrain, yTrain,l1_ratio=bestL1,alpha=bestAlpha)
 yPredictEN,ENModel = useElasticNetCV(xTest, yTest, xTrain, yTrain)
 R2EN = sm.r2_score(yPredictEN,yTest)
 CREN = np.where(ENModel.coef_==0)[0].shape[0]/xTrain.shape[1]
@@ -183,7 +183,7 @@ fitnessSave = np.array([])
 lvSave = np.array([])
 transSave = []
 for ii in range(1,orthArray.shape[0]):
-    print("run %d experiment" %(ii))
+    print("run %d experiment,percent is %f" %(ii, float(ii)/orthArray.shape[0]))
     selectionPlan = orthArray[ii,:]
     selectedIndex = np.where(selectionPlan == 1)[0]
     xSelected = xTrain[:, selectedIndex]
