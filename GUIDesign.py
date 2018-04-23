@@ -199,10 +199,10 @@ class ApplicationWindow(QMainWindow):
 
 
         self.gboxAlgo = QGridLayout()
-        # experNumLabel = QLabel('试验次数')
-        # experNumTxt = QLineEdit()
-        # experNumTxt.setText('100')
-        # experNumTxt.setFixedWidth(100)
+        experNumLabel = QLabel('训练集比例')
+        self.trainPTxt = QLineEdit()
+        self.trainPTxt.setText('0.8')
+        self.trainPTxt.setFixedWidth(100)
         algorithmsLable = QLabel('算法')
         self.availableAlgos = ['PLS','RReliefF','UVE-PLS','SA-PLS','GA-PLS','ACO-PLS','LASSO','Elastic Net','FP-Tree-PLS']
         self.algorithmBlock = QComboBox()
@@ -215,8 +215,8 @@ class ApplicationWindow(QMainWindow):
         self.gboxAlgo.addWidget(algorithmsLable, 0, 0)
         self.gboxAlgo.addWidget(self.algorithmBlock, 0, 1)
         self.gboxAlgo.addWidget(self.changeParameter,0,2)
-        # self.gboxAlgo.addWidget(experNumLabel,0,3)
-        # self.gboxAlgo.addWidget(experNumTxt,0,4)
+        self.gboxAlgo.addWidget(experNumLabel,0,3)
+        self.gboxAlgo.addWidget(self.trainPTxt,0,4)
         self.gboxAlgoBox.setLayout(self.gboxAlgo)
 
         analysisLabel = QLabel('分析结果')

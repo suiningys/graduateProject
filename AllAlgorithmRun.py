@@ -52,7 +52,7 @@ If RandomState instance, random_state is the random number generator; If None,
 the random number generator is the RandomState instance used by np.random.
 '''
 xTrainOrigin, xTestOrigin, yTrainOrigin, yTestOrigin = \
-            train_test_split(specData2, NO, test_size=0.2, random_state=42)
+            train_test_split(specData2, SO2, test_size=0.2, random_state=42)
 
 '''
 数据预处理
@@ -123,14 +123,17 @@ def ElasticNetCVOwn(xTest, yTest, xTrain, yTrain, plot=False):
     rmsecvBest = np.inf
     bestAlpha = 0
     bestL1  = 1
-    l1Cand = np.arange(0,1,0.1)
-    alpheCand = np.arange(0,1,0.1)
+    l1Cand = np.arange(0, 1, 0.1)
+    alpheCand = np.arange(0, 0.01, 0.001)
     rmsecvSave = np.zeros([l1Cand.shape[0],alpheCand.shape[0]])
+    R2CVSave = np.zeros([l1Cand.shape[0], alpheCand.shape[0]])
     for ii in range(l1Cand.shape[0]):
         l1 = l1Cand[ii]
         for jj in range(alpheCand.shape[0]):
             alpha = alpheCand[jj]
             squareArray = np.array([[]])
+            yPredictTempTrueAll = np.array([[]])
+            yTempTrueAll = np.array([[]])
             for train, test in kf.split(xTrain):
                 xTrainTemp = xTrain[train, :]
                 yTrainTemp = yTrain[train]
@@ -140,37 +143,101 @@ def ElasticNetCVOwn(xTest, yTest, xTrain, yTrain, plot=False):
                 enModel.fit(xTrainTemp,yTrainTemp)
                 yPredictTemp = enModel.predict(xTestTemp)
                 yPredictTempTrue = scalerY.inverse_transform(yPredictTemp)
+                yPredictTempTrue = yPredictTempTrue.reshape(len(yPredictTempTrue), 1)
                 yTestTempTrue = scalerY.inverse_transform(yTestTemp)
-                residual = yPredictTempTrue - yTestTempTrue
-                square = np.dot(residual.T, residual)
-                squareArray = np.append(squareArray, square)
+                yPredictTempTrueAll = np.append(yPredictTempTrueAll,yPredictTempTrue)
+                yTempTrueAll = np.append(yTempTrueAll,yTestTempTrue)
+                # residual = yPredictTempTrue.reshape(len(yPredictTempTrue), 1) - yTestTempTrue
+                # square = np.dot(residual.T, residual)
+                # squareArray = np.append(squareArray, square)
+            residual = yPredictTempTrueAll - yTempTrueAll
+            square = np.dot(residual.T, residual)
+            RMSECV = np.sqrt(np.sum(square)/xTrain.shape[0])
+            R2CV = sm.r2_score(yTempTrueAll,yPredictTempTrueAll)
                 # squareArray.append(square)
-            RMSECV = np.sqrt(np.sum(squareArray) / xTrain.shape[0])
+            # RMSECV = np.sqrt(np.sum(squareArray) / xTrain.shape[0])
+            # print(alpha,l1,RMSECV)
             rmsecvSave[ii][jj] = RMSECV
+            R2CVSave[ii][jj] = R2CV
             if RMSECV < rmsecvBest:
                 rmsecvBest = RMSECV
                 bestAlpha = alpha
                 bestL1 = l1
+
+    X, Y = np.meshgrid(l1Cand, alpheCand)
+    plotData = {}
+    plotData['Z'] = rmsecvSave
+    plotData['X'] = X
+    plotData['Y'] = Y
+    plotData['r2'] = R2CVSave
     if(plot):
         import matplotlib.pyplot as plt
         from mpl_toolkits.mplot3d import Axes3D
         fig = plt.figure()
         ax = Axes3D(fig)
-        X,Y = np.meshgrid(l1Cand, alpheCand)
         ax.plot_surface(X,Y,rmsecvSave)
         ax.set_xlabel(r'$\rho$')
         ax.set_ylabel(r'$\alpha$')
         ax.set_zlabel(r'RMSECV')
         plt.show()
 
-    return bestAlpha, bestL1
+    return bestAlpha, bestL1, plotData
 
-# bestAlpha, bestL1 = ElasticNetCVOwn(xTest, yTest, xTrain, yTrain, plot=True)
-# yPredictEN0, ENModel0 = useElasticNet(xTest, yTest, xTrain, yTrain,l1_ratio=bestL1,alpha=bestAlpha)
+def findMinIndex(Z):
+    rows,cols = Z.shape
+    minV = np.inf
+    index = ()
+    for ii in range(rows):
+        for jj in range(cols):
+            if Z[ii][jj]<minV:
+                minV = Z[ii][jj]
+                index = (ii,jj)
+    return index
+
+bestAlpha, bestL1, plotData = ElasticNetCVOwn(xTest, yTest, xTrain, yTrain, plot=False)
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib import cm
+Z = plotData['Z']
+X = plotData['X']
+Y = plotData['Y']
+offset = Z.min()
+minIndex = findMinIndex(Z)
+
+# fig = plt.figure()
+# ax = Axes3D(fig)
+# ax.plot_wireframe(X, Y, Z)
+# ax.set_xlabel(r'$\rho$')
+# ax.set_ylabel(r'$\alpha$')
+# ax.set_zlabel(r'RMSECV')
+# plt.show()
+fig = plt.figure()
+ax = fig.gca(projection='3d')
+ax.plot_wireframe(X, Y, Z, rstride=1, cstride=1, color='k',linewidth = 0.5)
+ax.scatter(X[minIndex],Y[minIndex],Z[minIndex],marker='o',color='r')
+cset = ax.contourf(X, Y, Z, zdir='z',offset = offset, cmap=cm.coolwarm)
+# cset = ax.contourf(X, Y, Z, zdir='x', cmap=cm.coolwarm)
+# cset = ax.contourf(X, Y, Z, zdir='y', cmap=cm.coolwarm)
+ax.set_xlabel(r'$\rho$')
+ax.set_ylabel(r'$\alpha$')
+ax.set_zlabel(r'RMSECV')
+plt.show()
+
+
+yPredictEN0, ENModel0 = useElasticNet(xTest, yTest, xTrain, yTrain,l1_ratio=bestL1,alpha=bestAlpha)
+R2EN0 = sm.r2_score(yTest,yPredictEN0)
+CREN0 = np.where(ENModel0.coef_==0)[0].shape[0]/xTrain.shape[1]
+yTrainPredictEN = ENModel0.predict(xTrain)
+R2CVEN0 = plotData['r2'][minIndex]
+RMSETEN0 = np.sqrt(sm.mean_squared_error(scalerY.inverse_transform(yTrainPredictEN),yTrainOrigin))
+RMSEPEN0 = np.sqrt(sm.mean_squared_error(scalerY.inverse_transform(yPredictEN0),yTestOrigin))
+RMSECVEN0 = Z.min()
+
 yPredictEN,ENModel = useElasticNetCV(xTest, yTest, xTrain, yTrain)
+yPredictEN1,ENModel1 = useElasticNet(xTest, yTest, xTrain, yTrain,alpha=0.002,l1_ratio=0.5)
 R2EN = sm.r2_score(yPredictEN,yTest)
 CREN = np.where(ENModel.coef_==0)[0].shape[0]/xTrain.shape[1]
 RMSEPEN = np.sqrt(sm.mean_squared_error(scalerY.inverse_transform(yPredictEN),yTestOrigin))
+RMSEPEN2 = np.sqrt(sm.mean_squared_error(scalerY.inverse_transform(yPredictEN0),yTestOrigin))
 
 '''
 my algorithm
@@ -251,21 +318,30 @@ for perc in np.arange(50,90,5):
         bestBranch = bestBranchTemp
 
 #draw picture
-rmsecvSaveMod = np.zeros([np.arange(50,90,5).shape[0],xnum.shape[0]])
-for ii in range(xnum.shape[0]):
-    for jj in range(np.arange(50,90,5).shape[0]):
-        rmsecvSaveMod[jj][ii] = rmsecvSave[jj][ii]
 
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
+minIndexFP = findMinIndex(rmsecvSave)
+minRow = minIndexFP[0]
 fig = plt.figure()
-ax = Axes3D(fig)
-X,Y = np.meshgrid(xnum, np.arange(50,90,5))
-ax.plot_surface(X,Y,rmsecvSaveMod)
-ax.set_xlabel(r'$minSup$')
-ax.set_ylabel(r'$perc$')
-ax.set_zlabel(r'RMSECV')
-plt.show()
+ax = fig.add_subplot(111)
+plt.plot(xnum, rmsecvSave[minRow],marker='.',c='k')
+ax.set_xlabel("minSup")
+ax.set_ylabel("RMSECV")
+
+# rmsecvSaveMod = np.zeros([np.arange(50,90,5).shape[0],xnum.shape[0]])
+# for ii in range(xnum.shape[0]):
+#     for jj in range(np.arange(50,90,5).shape[0]):
+#         rmsecvSaveMod[jj][ii] = rmsecvSave[jj][ii]
+#
+# import matplotlib.pyplot as plt
+# from mpl_toolkits.mplot3d import Axes3D
+# fig = plt.figure()
+# ax = Axes3D(fig)
+# X,Y = np.meshgrid(xnum, np.arange(50,90,5))
+# ax.plot_surface(X,Y,rmsecvSaveMod)
+# ax.set_xlabel(r'$minSup$')
+# ax.set_ylabel(r'$perc$')
+# ax.set_zlabel(r'RMSECV')
+# plt.show()
 
 
 
@@ -361,7 +437,7 @@ def modelMerit(SelectedIndex):
         squareArray = np.append(squareArray, square)
         # squareArray.append(square)
     RMSECV = np.sqrt(np.sum(squareArray) / xTrainSelected.shape[0]) 
-    R2CV = sm.r2_score(yPredictCV, yTrueCV)
+    R2CV = sm.r2_score( yTrueCV,yPredictCV)
     
     CR = 1 - len(SelectedIndex)/xTrain.shape[1]
     return rmsecvBest, RMSET, RMSEP, R2T, R2P, R2CV, CR

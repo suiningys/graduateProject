@@ -28,6 +28,8 @@ from ACOalgorithm import acoAlgorithm
 
 from generateOrthogonalArrays import *
 from SAalgorithm import *
+from readData import useElasticNetCV
+from readData import ElasticNetCVOwn
 
 class testCV(unittest.TestCase):
     def test_init(self):
@@ -229,7 +231,8 @@ class ENTest(unittest.TestCase):
         CO, CO2, CH4, specData = readData()
         xTrain, xTest, yTrain, yTest = \
             train_test_split(specData, CO, test_size=0.25, random_state=42)
-        bestAlpha, bestL1 = ElasticNetCVOwn(xTest, yTest, xTrain, yTrain, plot=True)
+        yPredictEN, ENModel = useElasticNetCV(xTest, yTest, xTrain, yTrain)
+        bestAlpha, bestL1 = ElasticNetCVOwn(xTest, yTest, xTrain, yTrain)
 
 if __name__=="__main__":
     unittest.main()

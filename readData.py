@@ -75,7 +75,13 @@ def useElasticNetCV(xTest, yTest, xTrain, yTrain):
     yPredict = enModel.predict(xTest)
     return yPredict,enModel
 
-def ElasticNetCVOwn(xTest, yTest, xTrain, yTrain, plot=False):
+def ElasticNetCVOwn(xTest, yTest, xTrainOrigin, yTrainOrigin, plot=False):
+    from sklearn import preprocessing
+    scalerX = preprocessing.StandardScaler().fit(xTrainOrigin)
+    xTrain = scalerX.transform(xTrainOrigin)
+    scalerY = preprocessing.StandardScaler().fit(yTrainOrigin)
+    yTrain = scalerY.transform(yTrainOrigin)
+
     kf = model_selection.KFold(n_splits=5, random_state=10)
     trans, features = xTrain.shape
     enModel = linear_model.ElasticNet()
@@ -83,7 +89,7 @@ def ElasticNetCVOwn(xTest, yTest, xTrain, yTrain, plot=False):
     bestAlpha = 0
     bestL1  = 1
     l1Cand = np.arange(0,1,0.1)
-    alpheCand = np.arange(0,1,0.1)
+    alpheCand = np.arange(0,0.01,0.001)
     rmsecvSave = np.zeros([l1Cand.shape[0],alpheCand.shape[0]])
     for ii in range(l1Cand.shape[0]):
         l1 = l1Cand[ii]
@@ -98,13 +104,14 @@ def ElasticNetCVOwn(xTest, yTest, xTrain, yTrain, plot=False):
                 enModel.set_params(alpha=alpha,l1_ratio=l1)
                 enModel.fit(xTrainTemp,yTrainTemp)
                 yPredictTemp = enModel.predict(xTestTemp)
-                # yPredictTempTrue = scalerY.inverse_transform(yPredictTemp)
-                # yTestTempTrue = scalerY.inverse_transform(yTestTemp)
-                residual = yPredictTemp - yTestTemp
+                yPredictTempTrue = scalerY.inverse_transform(yPredictTemp)
+                yTestTempTrue = scalerY.inverse_transform(yTestTemp)
+                residual = yPredictTempTrue.reshape(len(yPredictTempTrue),1) - yTestTempTrue
                 square = np.dot(residual.T, residual)
                 squareArray = np.append(squareArray, square)
                 # squareArray.append(square)
             RMSECV = np.sqrt(np.sum(squareArray) / xTrain.shape[0])
+            print(alpha,l1,RMSECV)
             rmsecvSave[ii][jj] = RMSECV
             if RMSECV < rmsecvBest:
                 rmsecvBest = RMSECV
@@ -117,7 +124,7 @@ def ElasticNetCVOwn(xTest, yTest, xTrain, yTrain, plot=False):
         ax = Axes3D(fig)
         X,Y = np.meshgrid(l1Cand, alpheCand)
         ax.plot_surface(X,Y,rmsecvSave)
-        ax.set_xlabel(r'L1')
+        ax.set_xlabel(r'$\rho$')
         ax.set_ylabel(r'$\alpha$')
         ax.set_zlabel(r'RMSECV')
         plt.show()
