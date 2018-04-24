@@ -31,6 +31,49 @@ from ACOalgorithm import acoAlgorithm
 from SAalgorithm import SA
 from generateOrthogonalArrays import *
 
+
+
+testTrans = [['a', 'b'],
+             ['c', 'd'],
+             ['a', 'c', 'd', 'e'],
+             ['a', 'd', 'e'],
+             ['a', 'b', 'c'],
+             ['a', 'b', 'c', 'd'],
+             ['a'],
+             ['a', 'b', 'c'],
+             ['a', 'b', 'd'],
+             ['b', 'c', 'e']]
+fig = plt.figure()
+axes1 = fig.add_subplot(2,2,1)
+plt.axis('off')
+transactions, transferDict = trans2Array([testTrans[0]])
+testTree, headerTable = createTree(transactions, minSup=0)
+structArray = []
+drawTree2(axes1, testTree, structArray, 0)
+axes1.set_title('(a)')
+axes2 = fig.add_subplot(2,2,2)
+plt.axis('off')
+transactions, transferDict = trans2Array([testTrans[0],testTrans[1]])
+testTree, headerTable = createTree(transactions, minSup=0)
+structArray = []
+drawTree2(axes2, testTree, structArray, 0)
+axes2.set_title('(b)')
+axes3 = fig.add_subplot(2,2,3)
+plt.axis('off')
+transactions, transferDict = trans2Array([testTrans[0],testTrans[1],testTrans[2]])
+testTree, headerTable = createTree(transactions, minSup=0)
+structArray = []
+drawTree2(axes3, testTree, structArray, 0)
+axes3.set_title('(c)')
+axes4 = fig.add_subplot(2,2,4)
+plt.axis('off')
+transactions, transferDict = trans2Array(testTrans)
+testTree, headerTable = createTree(transactions, minSup=0)
+structArray = []
+drawTree2(axes4, testTree, structArray, 0)
+axes4.set_title('(d)')
+plt.show()
+
 '''
 read data
 '''
@@ -127,10 +170,13 @@ def ElasticNetCVOwn(xTest, yTest, xTrain, yTrain, plot=False):
     alpheCand = np.arange(0, 0.01, 0.001)
     rmsecvSave = np.zeros([l1Cand.shape[0],alpheCand.shape[0]])
     R2CVSave = np.zeros([l1Cand.shape[0], alpheCand.shape[0]])
+    X, Y = np.meshgrid(l1Cand, alpheCand)
     for ii in range(l1Cand.shape[0]):
-        l1 = l1Cand[ii]
+        # l1 = l1Cand[ii]
         for jj in range(alpheCand.shape[0]):
-            alpha = alpheCand[jj]
+            l1 = X[ii][jj]
+            alpha = Y[ii][jj]
+            # alpha = alpheCand[jj]
             squareArray = np.array([[]])
             yPredictTempTrueAll = np.array([[]])
             yTempTrueAll = np.array([[]])
@@ -164,7 +210,7 @@ def ElasticNetCVOwn(xTest, yTest, xTrain, yTrain, plot=False):
                 bestAlpha = alpha
                 bestL1 = l1
 
-    X, Y = np.meshgrid(l1Cand, alpheCand)
+
     plotData = {}
     plotData['Z'] = rmsecvSave
     plotData['X'] = X

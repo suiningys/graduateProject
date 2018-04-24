@@ -124,9 +124,11 @@ def plotBranch(axes, ParentNode,ChildNode):
     xTick = [ParentNode.plotPos[0],ChildNode.plotPos[0]]
     yTick = [ParentNode.plotPos[1],ChildNode.plotPos[1]]
     # axes.plot(ParentNode.plotPos,ChildNode.plotPos,'-bo')
-    axes.plot(xTick,yTick,'-bo')
-    axes.annotate(r'%s:%d' %(A2T[ParentNode.name],ParentNode.count),xy=[x+0.1 for x in ParentNode.plotPos])
-    axes.annotate(r'%s:%d' %(A2T[ChildNode.name],ChildNode.count), xy=[x+0.1 for x in ChildNode.plotPos])
+    axes.plot(xTick,yTick,'-b.')
+    axes.annotate(r'%s:%d' % (A2T[ParentNode.name], ParentNode.count), xy=[x for x in ParentNode.plotPos])
+    axes.annotate(r'%s:%d' % (A2T[ChildNode.name], ChildNode.count), xy=[x for x in ChildNode.plotPos])
+    # axes.annotate(r'%s:%d' %(A2T[ParentNode.name],ParentNode.count),xy=[x+0.1 for x in ParentNode.plotPos])
+    # axes.annotate(r'%s:%d' %(A2T[ChildNode.name],ChildNode.count), xy=[x+0.1 for x in ChildNode.plotPos])
 
 def drawTreeSimple(axes, rootNode, structArray = [], level = 0):
     array = structArray
@@ -142,6 +144,24 @@ def drawTreeSimple(axes, rootNode, structArray = [], level = 0):
         child.plotPos = [len(array[level+1])-1,-level-1]
         plotBranch(axes,rootNode,child)
         drawTreeSimple(axes,child,array,level=level+1)
+
+def drawTree2(axes, rootNode, structArray = [], level = 0):
+    array = structArray
+    if level==0:
+
+        array.append(0)
+        rootNode.plotPos = [0,0]
+    if len(rootNode.children)==0: return
+    for child in rootNode.children.values():
+        if len(array)==level+1:
+            array.append(0)
+        # array[level+1].append(child)
+        child.plotPos = [max(array[level],rootNode.plotPos[0]),-level-1]
+        if array[level]<rootNode.plotPos[0]:
+            a = 10
+        plotBranch(axes,rootNode,child)
+        array[level] =child.plotPos[0]+1
+        drawTree2(axes,child,array,level=level+1)
 
 def ergodicTreeBranch(Node, branch = [], branchTemp = []):
     if Node.name!='root node':

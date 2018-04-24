@@ -149,10 +149,23 @@ class testFPtree(unittest.TestCase):
                      ['a', 'b', 'd'],
                      ['b', 'c', 'e']]
         transactions, transferDict = trans2Array(testTrans)
-        testTree, headerTable = createTree(transactions, minSup=0.7)
+        testTree, headerTable = createTree(transactions, minSup=0)
         structArray = []
         axes, fig = createPlot()
         drawTreeSimple(axes, testTree, structArray, 0)
+        plt.show()
+
+    def testDraw2(self):
+        testTrans = [['a', 'b','e'],
+                     ['b', 'c'],
+                     ['b', 'd', 'e'],
+                     ['a'],
+                     ['a']]
+        transactions, transferDict = trans2Array(testTrans)
+        testTree, headerTable = createTree(transactions, minSup=0)
+        structArray = []
+        axes, fig = createPlot()
+        drawTree2(axes, testTree, structArray, 0)
         plt.show()
 
     def testUseFP(self):
